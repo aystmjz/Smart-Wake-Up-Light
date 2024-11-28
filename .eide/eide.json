@@ -1,5 +1,5 @@
 {
-  "name": "light",
+  "name": "Smart-Wake-Up-Light",
   "type": "ARM",
   "dependenceList": [],
   "srcDirs": [
@@ -21,17 +21,6 @@
   "targets": {
     "Debug": {
       "excludeList": [
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_can.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_cec.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_crc.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_dac.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_dbgmcu.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_fsmc.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_i2c.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_sdio.c",
-        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_wwdg.c",
-        "src/test.c"
       ],
       "toolchain": "AC5",
       "compileConfig": {
@@ -124,9 +113,7 @@
         "libList": [],
         "defineList": [
           "USE_STDPERIPH_DRIVER",
-          "STM32F10X_MD",
-          "WSDC2412D",
-          "S_Spin"
+          "STM32F10X_MD"
         ]
       },
       "builderOptions": {
