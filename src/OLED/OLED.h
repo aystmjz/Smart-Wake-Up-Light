@@ -40,6 +40,8 @@ typedef struct {
 } PAINT;
 extern PAINT Paint;
 
+extern u8 Image_BW[4736];
+
 #define ROTATE_0   0   // 屏幕正向显示
 #define ROTATE_90  90  // 屏幕旋转90度显示
 #define ROTATE_180 180 // 屏幕旋转180度显示
@@ -51,7 +53,6 @@ extern PAINT Paint;
 #define All        1
 #define Part       0
 
-void OLED_GPIOInit(void);   // 初始化GPIO
 void OLED_WR_Bus(u8 dat);   // 模拟SPI时序
 void OLED_WR_REG(u8 reg);   // 写入一个命令
 void OLED_WR_DATA8(u8 dat); // 写入一个字节
@@ -60,6 +61,7 @@ void Epaper_READBUSY(void);
 void EPD_WhiteScreen_White(void); // 清屏白色
 void EPD_Dis_PartAll(u8 *Image);  // 用局刷的方式刷新全屏
 void EPD_DeepSleep(void);         // 深度睡眠
+void EPD_WeakUp(void);
 
 void Paint_NewImage(u8 *image, u16 Width, u16 Height, u16 Rotate, u16 Color);            // 创建画布控制显示方向
 void OLED_Clear(u16 Color);                                                              // 清屏函数
@@ -74,6 +76,6 @@ void OLED_ShowChinese(u16 x, u16 y, u16 num, u16 size1, u16 color);             
 void OLED_ShowPicture(u16 x, u16 y, u16 sizex, u16 sizey, const u8 BMP[], u16 color);    // 显示图片
 void OLED_Display(u8 *Image, u8 Mode);                                                   // 更新到屏幕(局刷/全刷)
 
-void OLED_GUIInit(void); // 初始化屏幕
+void OLED_Init(void);
 
 #endif
