@@ -1,5 +1,4 @@
 #include "oled.h"
-#include "delay.h"
 #include "oledfont.h"
 
 // ≥ı ºªØGPIO
@@ -100,9 +99,9 @@ void OLED_GUIInit(void)
 {
     OLED_GPIOInit();
     OLED_RES_Clr(); // Module reset
-    delay_ms(20);   // At least 10ms delay
+    Delay_ms(20);   // At least 10ms delay
     OLED_RES_Set();
-    delay_ms(20); // At least 10ms delay
+    Delay_ms(20); // At least 10ms delay
     Epaper_READBUSY();
     OLED_WR_REG(0x12); // SWRESET
     Epaper_READBUSY();
@@ -175,9 +174,9 @@ void EPD_Dis_PartAll(u8 *Image)
     Height = 16;
 
     OLED_RES_Clr();
-    delay_ms(20);
+    Delay_ms(20);
     OLED_RES_Set();
-    delay_ms(20);
+    Delay_ms(20);
 
     OLED_WR_REG(0x3C);
     OLED_WR_DATA8(0x80);
@@ -226,7 +225,7 @@ void EPD_DeepSleep(void)
 {
     OLED_WR_REG(0x10); // enter deep sleep
     OLED_WR_DATA8(0x01);
-    delay_ms(100);
+    Delay_ms(100);
 }
 
 void Paint_NewImage(u8 *image, u16 Width, u16 Height, u16 Rotate, u16 Color)

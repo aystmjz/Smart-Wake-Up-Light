@@ -3,6 +3,7 @@
 
 #include "sys.h"
 #include "stdlib.h"
+#include "Delay.h"
 
 //-----------------OLED¶Ë¿Ú¶¨Òå----------------
 
