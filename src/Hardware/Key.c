@@ -10,9 +10,8 @@ void Timer_Init(void)
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInitStructure.TIM_Period = 9500 - 1; // 100ms
-	TIM_TimeBaseInitStructure.TIM_Prescaler = 72 - 1;
-	TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseInitStructure.TIM_Period = 10 - 1; // 1ms
+	TIM_TimeBaseInitStructure.TIM_Prescaler = 7200 - 1;
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
 
 	TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
@@ -49,16 +48,19 @@ uint8_t Key_Read(void)
 
 uint8_t Key_GetNumber(void)
 {
-	int8_t Temp = 0;
-	Temp = Key_KeyNumber;
-	Key_KeyNumber = 0;
-	if (Temp)
-		return Temp;
+	uint8_t temp = Key_KeyNumber;
+	if (temp)
+	{
+		Key_KeyNumber = 0;
+		return temp;
+	}
+	else
+		return 0;
 }
 
 uint8_t Key_Clear(void)
 {
-	Key_KeyNumber=0;
+	Key_KeyNumber = 0;
 	return Key_KeyNumber;
 }
 
@@ -83,11 +85,14 @@ void Key_Entry(void)
 	{
 		Key_KeyNumber = 1;
 		HoldTimer = 0;
+		Buzzer_Flag = 1;
 	}
 	else if (LastState == 1 && NowState == 1)
 	{
 		HoldTimer++;
 		if (HoldTimer > 20)
+		{
 			Key_KeyNumber = 2;
+		}
 	}
 }

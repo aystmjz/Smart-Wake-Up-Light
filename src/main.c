@@ -8,6 +8,8 @@
 #include "OLED.h"
 #include "DS3231.h"
 #include "I2C.h"
+#include "PWM.h"
+#include "Buzzer.h"
 // #include "DHT11.h"
 // #include "AT24C02.h"
 // #include "Music.h"
@@ -1095,6 +1097,8 @@ int main()
 	Encoder_Init();
 	DS3231_Init();
 	OLED_Init();
+	Buzzer_Init();
+	PWM_Init();
 	// AT24C02_Init();
 	// EX0 = 1;
 	// PX1 = 1;
@@ -2259,16 +2263,34 @@ int main()
 // 	}
 // }
 
-void TIM2_IRQHandler(void)
+void TIM2_IRQHandler(void) // 1ms
 {
-	static uint16_t Key_Counter = 0;
+	static uint16_t Key_Counter = 0, Buzzer_Counter = 0;
+	static int16_t Encoder_Last = 0;
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
 		Key_Counter++;
-		if (Key_Counter >= 4)
+		if (Key_Counter >= 40)
 		{
 			Key_Counter = 0;
 			Key_Entry();
+			if (Encoder_Last != Encoder_GetCounter())
+			{
+				Encoder_Last = Encoder_GetCounter();
+				Buzzer_Flag = 1;
+			}
+		}
+		if (Buzzer_Flag)
+		{
+			Buzzer_Flag = 0;
+			Buzzer_Counter = 20;
+			Buzzer_ON();
+		}
+		if (Buzzer_Counter)
+		{
+			if (Buzzer_Counter == 1)
+				Buzzer_OFF();
+			Buzzer_Counter--;
 		}
 		// if (((!TIME[1]) && (!TIME[0]) && Alarm_Set[0]) && BUZ_Flag)
 		// {
