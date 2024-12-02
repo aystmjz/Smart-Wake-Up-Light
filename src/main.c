@@ -10,6 +10,8 @@
 #include "I2C.h"
 #include "PWM.h"
 #include "Buzzer.h"
+#include "ASRPRO.h"
+#include "LED.h"
 // #include "DHT11.h"
 // #include "AT24C02.h"
 // #include "Music.h"
@@ -1099,6 +1101,9 @@ int main()
 	OLED_Init();
 	Buzzer_Init();
 	PWM_Init();
+	ASRPRO_Init();
+	LED_Init();
+	
 	// AT24C02_Init();
 	// EX0 = 1;
 	// PX1 = 1;
@@ -1126,7 +1131,7 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				// KeyNumber_CTRL1();
+				ASRPRO_Turn();
 				break;
 			case 2:
 				EPD_WeakUp();
