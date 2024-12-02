@@ -12,6 +12,7 @@
 #include "Buzzer.h"
 #include "ASRPRO.h"
 #include "LED.h"
+#include "SHT30.h"
 // #include "DHT11.h"
 // #include "AT24C02.h"
 // #include "Music.h"
@@ -1103,7 +1104,7 @@ int main()
 	PWM_Init();
 	ASRPRO_Init();
 	LED_Init();
-	
+	SHT30_Init();
 	// AT24C02_Init();
 	// EX0 = 1;
 	// PX1 = 1;
@@ -1140,15 +1141,21 @@ int main()
 			}
 			Refresh_Flag = 1;
 		}
-		// OLED_ShowNum(0, 0, DHT11_RH_C[1], 2, 16,BLACK);
-		// if (Refresh_Flag)
-		// 	OLED_ShowChar(16, 0, '.', 16,BLACK);
-		// OLED_ShowNum(24, 0, DHT11_RH_C[2], 1, 16,BLACK);
-		// OLED_ShowChinese(32, 0, 20, 16,BLACK);
 
-		// OLED_ShowNum(52, 0, DHT11_RH_C[0], 2, 16,BLACK);
-		// if (Refresh_Flag)
-		// 	OLED_ShowChar(68, 0, '%', 16,BLACK);
+		if (Refresh_Flag)
+		{
+			SHT30_GetData();
+		}
+
+		OLED_ShowNum(0, 0, (uint8_t)SHT.Temp, 2, 16, BLACK);
+		if (Refresh_Flag)
+			OLED_ShowChar(16, 0, '.', 16, BLACK);
+		OLED_ShowNum(24, 0, (uint8_t)(SHT.Temp * 10.0) % 10, 1, 16, BLACK);
+		OLED_ShowChinese(32, 0, 20, 16, BLACK);
+
+		OLED_ShowNum(52, 0, (uint8_t)SHT.Hum, 2, 16, BLACK);
+		if (Refresh_Flag)
+			OLED_ShowChar(68, 0, '%', 16, BLACK);
 
 		// OLED_ShowNum(80, 0, lx, 5, 16,BLACK);
 
