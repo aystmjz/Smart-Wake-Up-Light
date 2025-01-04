@@ -107,8 +107,8 @@ void Uart_Init(uint32_t bound)
 	uart2_init(bound);
 }
 
-// DEBUG串口打印
-void Uart1_SendStr(char *SendBuf)
+// Debug串口打印
+void Debug_SendStr(char *SendBuf)
 {
 	while (*SendBuf)
 	{
@@ -152,9 +152,32 @@ unsigned char UART_Check(unsigned char length, unsigned char *p)
 		return 0;
 }
 
+void ASRPRO_Clear_Buff(void)
+{
+	RxCounter = 0;
+	for (uint8_t i = 0; i < UART_REC_LEN; i++)
+	{
+		RxBuffer[i] = 0;
+	}
+}
+
+uint8_t ASRPRO_Get_CMD(void)
+{
+	uint8_t temp;
+	for (uint8_t i = 0; i < UART_REC_LEN; i++)
+	{
+		if (RxBuffer[i] == 0xaa && RxBuffer[(i + 1) % UART_REC_LEN] == 0x00)
+		{
+			temp = RxBuffer[(i + 2) % UART_REC_LEN];
+			ASRPRO_Clear_Buff();
+			return temp;
+		}
+	}
+	return 0;
+}
 void Debug_printf(char *SendBuf)
 {
-	Uart1_SendStr(SendBuf);
+	Debug_SendStr(SendBuf);
 }
 void ASRPRO_printf(const char *format, ...)
 {
@@ -164,11 +187,28 @@ void ASRPRO_printf(const char *format, ...)
 	va_end(args);
 }
 
-// MC串口中断
-void ASRPRO_IRQHandler(void)
+// ASRPRO串口中断
+void USART2_IRQHandler(void)
 {
 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	{
 		RxBuffer[RxCounter++] = USART_ReceiveData(USART2);
+		while ((USART1->SR & 0X40) == 0)
+		{
+		} // 等待发送完成
+		USART1->DR = (uint8_t)RxBuffer[RxCounter - 1];
+		RxCounter %= UART_REC_LEN;
+	}
+}
+
+// Debug串口中断
+void USART1_IRQHandler(void)
+{
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	{
+		while ((USART2->SR & 0X40) == 0)
+		{
+		} // 等待发送完成
+		USART2->DR = (uint8_t)USART_ReceiveData(USART1);
 	}
 }

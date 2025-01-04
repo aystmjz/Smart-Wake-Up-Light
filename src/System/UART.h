@@ -13,5 +13,6 @@ void ASRPRO_Send_byte(uint8_t byte);
 void ASRPRO_Send_bytes(uint8_t *bytes, uint8_t length);
 void ASRPRO_printf(const char *format, ...);
 void Debug_printf(char *SendBuf);
+uint8_t ASRPRO_Get_CMD(void);
 
 #endif

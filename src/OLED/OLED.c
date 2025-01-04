@@ -159,6 +159,7 @@ void OLED_GUIInit(void)
 // 全刷到显存
 void OLED_Display(u8 *Image, u8 Mode)
 {
+    LED_ON();
     if (Mode)
     {
         OLED_GUIInit();
@@ -181,6 +182,7 @@ void OLED_Display(u8 *Image, u8 Mode)
     {
         EPD_Dis_PartAll(Image);
     }
+    LED_OFF();
 }
 
 // 用局刷的方式刷新全屏

@@ -31,6 +31,7 @@ uint8_t Alarm_Set_Judge[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 int8_t Alarm_Date_Judge[2] = {0xFF, 0xFF};
 
 uint8_t KeyNum;
+uint8_t CmdNum;
 int8_t EncoderNum;
 uint8_t PWM_Couter = 0, f = 0;
 unsigned int PWM_Timer = 0, PWM_Compare = 1;
@@ -105,7 +106,8 @@ void TimeJudge()
 
 void KeyNumber_Set_Clock()
 {
-	EPD_WhiteScreen_White();
+	//EPD_WhiteScreen_White();
+	OLED_Clear(WHITE);
 
 	OLED_ShowNum(0, 2, TIME[6], 2, 16, BLACK);
 	OLED_ShowChinese(16, 2, 8, 16, BLACK); // Ū
@@ -296,7 +298,8 @@ void Alarm_Judge()
 
 void KeyNumber_Set_Alarm()
 { // 5,10,15,20,30,40,60
-	EPD_WhiteScreen_White();
+	//EPD_WhiteScreen_White();
+	OLED_Clear(WHITE);
 
 	OLED_ShowChinese(0, 0, 0, 16, BLACK);
 	if (Alarm_Set[1])
@@ -636,19 +639,20 @@ void KeyNumber_Set_Alarm()
 // }
 void KeyNumber_Set()
 {
-	EPD_WhiteScreen_White();
+	//EPD_WhiteScreen_White();
+	OLED_Clear(WHITE);
 
-	OLED_ShowChinese(48, 0, 28, 16, BLACK); // ʨ
-	OLED_ShowChinese(64, 0, 29, 16, BLACK); // ׃
+	OLED_ShowChinese(48, 0, 28, 16, BLACK);
+	OLED_ShowChinese(64, 0, 29, 16, BLACK);
 
-	OLED_ShowChinese(0, 3, 22, 16, BLACK);	// ʱ
-	OLED_ShowChinese(16, 3, 23, 16, BLACK); // ݤ
+	OLED_ShowChinese(0, 3, 22, 16, BLACK);
+	OLED_ShowChinese(16, 3, 23, 16, BLACK);
 
-	OLED_ShowChinese(48, 3, 24, 16, BLACK); // Ŗ
-	OLED_ShowChinese(64, 3, 25, 16, BLACK); // ד
+	OLED_ShowChinese(48, 3, 26, 16, BLACK);
+	OLED_ShowChinese(64, 3, 27, 16, BLACK);
 
-	OLED_ShowChinese(96, 3, 26, 16, BLACK);	 // Ǥ
-	OLED_ShowChinese(112, 3, 27, 16, BLACK); // ̻
+	OLED_ShowChinese(96, 3, 24, 16, BLACK);
+	OLED_ShowChinese(112, 3, 25, 16, BLACK);
 
 	OLED_Display(Image_BW, Part);
 
@@ -1097,12 +1101,13 @@ int main()
 	// Int1_Init();
 	// Timer_Init();
 	Key_Init();
+	ASRPRO_Init();
+	Uart_Init(115200);
 	Encoder_Init();
 	DS3231_Init();
 	OLED_Init();
 	Buzzer_Init();
 	PWM_Init();
-	ASRPRO_Init();
 	LED_Init();
 	SHT30_Init();
 	// AT24C02_Init();
@@ -1113,6 +1118,8 @@ int main()
 	// Music_CMD(0, Music_Volume, Volume);
 	Paint_NewImage(Image_BW, OLED_W, OLED_H, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
+
+	Debug_printf("Init OK\r\n");
 
 	// DS3231_ReadTime();
 
@@ -1132,12 +1139,12 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				ASRPRO_Turn();
+				ASRPRO_Power_Turn();
 				break;
 			case 2:
 				EPD_WeakUp();
 				KeyNumber_Set();
-				break;
+				break; 
 			}
 			Refresh_Flag = 1;
 		}
@@ -1314,6 +1321,7 @@ int main()
 		}
 
 		KeyNum = Key_GetNumber();
+		CmdNum = ASRPRO_Get_CMD();
 
 		//  if (Voice_Flag)
 		//  {
@@ -1370,6 +1378,24 @@ int main()
 		// }
 		Delay_ms(1000);
 		DS3231_ReadTime();
+
+		if (CmdNum)
+		{
+			switch (CmdNum)
+			{
+			case 1:
+				ASRPRO_printf("%c%c%c%c", 0xaa, 0x00, 0x01, (uint8_t)SHT.Temp);
+				break;
+			case 2:
+				ASRPRO_printf("%c%c%c%c", 0xaa, 0x00, 0x02, (uint8_t)SHT.Hum);
+				break;
+			case 3:
+				ASRPRO_printf("%c%c%c%c%c%c", 0xaa, 0x00, 0x03, (uint8_t)TIME[2], (uint8_t)TIME[1], (uint8_t)TIME[0]);
+				break;
+			default:
+				break;
+			}
+		}
 	}
 }
 
