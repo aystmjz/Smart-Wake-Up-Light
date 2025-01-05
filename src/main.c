@@ -13,6 +13,7 @@
 #include "ASRPRO.h"
 #include "LED.h"
 #include "SHT30.h"
+#include "EXTI.h"
 // #include "DHT11.h"
 // #include "AT24C02.h"
 // #include "Music.h"
@@ -32,6 +33,7 @@ int8_t Alarm_Date_Judge[2] = {0xFF, 0xFF};
 
 uint8_t KeyNum;
 uint8_t CmdNum;
+uint8_t EXTI_Flag;
 int8_t EncoderNum;
 uint8_t PWM_Couter = 0, f = 0;
 unsigned int PWM_Timer = 0, PWM_Compare = 1;
@@ -74,57 +76,57 @@ void KeyNumber_CTRL2()
 
 void TimeJudge()
 {
-	if (TIME[6] < 20)
-		TIME[6] = 50;
-	if (TIME[6] > 50)
-		TIME[6] = 20;
-	if (TIME[4] < 1)
-		TIME[4] = 12;
-	if (TIME[4] > 12)
-		TIME[4] = 1;
-	if (TIME[3] < 1)
-		TIME[3] = 31;
-	if (TIME[3] > 31)
-		TIME[3] = 1;
-	if (TIME[5] < 1)
-		TIME[5] = 7;
-	if (TIME[5] > 7)
-		TIME[5] = 1;
-	if (TIME[2] < 0)
-		TIME[2] = 23;
-	if (TIME[2] > 23)
-		TIME[2] = 0;
-	if (TIME[1] < 0)
-		TIME[1] = 59;
-	if (TIME[1] > 59)
-		TIME[1] = 0;
-	if (TIME[0] < 0)
-		TIME[0] = 59;
-	if (TIME[0] > 59)
-		TIME[0] = 0;
+	if (Time_Date.tm_year < 120)
+		Time_Date.tm_year = 150;
+	if (Time_Date.tm_year > 150)
+		Time_Date.tm_year = 120;
+	if (Time_Date.tm_mon < 0)
+		Time_Date.tm_mon = 11;
+	if (Time_Date.tm_mon > 11)
+		Time_Date.tm_mon = 0;
+	if (Time_Date.tm_mday < 1)
+		Time_Date.tm_mday = 31;
+	if (Time_Date.tm_mday > 31)
+		Time_Date.tm_mday = 1;
+	if (Time_Date.tm_wday < 0)
+		Time_Date.tm_wday = 6;
+	if (Time_Date.tm_wday > 6)
+		Time_Date.tm_wday = 0;
+	if (Time_Date.tm_hour < 0)
+		Time_Date.tm_hour = 23;
+	if (Time_Date.tm_hour > 23)
+		Time_Date.tm_hour = 0;
+	if (Time_Date.tm_min < 0)
+		Time_Date.tm_min = 59;
+	if (Time_Date.tm_min > 59)
+		Time_Date.tm_min = 0;
+	if (Time_Date.tm_sec < 0)
+		Time_Date.tm_sec = 59;
+	if (Time_Date.tm_sec > 59)
+		Time_Date.tm_sec = 0;
 }
 
 void KeyNumber_Set_Clock()
 {
-	//EPD_WhiteScreen_White();
+	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
-	OLED_ShowNum(0, 2, TIME[6], 2, 16, BLACK);
+	OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK);
 	OLED_ShowChinese(16, 2, 8, 16, BLACK); // Ū
-	OLED_ShowNum(32, 2, TIME[4], 2, 16, BLACK);
+	OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK);
 	OLED_ShowChinese(48, 2, 9, 16, BLACK); // Ղ
-	OLED_ShowNum(64, 2, TIME[3], 2, 16, BLACK);
-	OLED_ShowChinese(80, 2, 7, 16, BLACK); // ɕ
-	OLED_ShowChinese(96, 2, 0, 16, BLACK); // ל
-	OLED_ShowChinese(112, 2, TIME[5], 16, BLACK);
-	if (TIME[2] / 10)
-		OLED_ShowChinese(16, 4, TIME[2] / 10 + 10, 16, BLACK);
-	OLED_ShowChinese(32, 4, TIME[2] % 10 + 10, 16, BLACK); // ʱ
+	OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK);
+	OLED_ShowChinese(80, 2, 0, 16, BLACK); // ɕ
+	OLED_ShowChinese(96, 2, 7, 16, BLACK); // ל
+	OLED_ShowChinese(112, 2, Time_Week, 16, BLACK);
+	if (Time_Hour / 10)
+		OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
+	OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK); // ʱ
 	OLED_ShowChinese(48, 4, 21, 16, BLACK);
-	OLED_ShowChinese(64, 4, TIME[1] / 10 + 10, 16, BLACK);
-	OLED_ShowChinese(80, 4, TIME[1] % 10 + 10, 16, BLACK); // ؖ
-	OLED_ShowNum(98, 5, TIME[0] / 10, 1, 8, BLACK);		   // ī
-	OLED_ShowNum(106, 5, TIME[0] % 10, 1, 8, BLACK);
+	OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK);
+	OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK); // ؖ
+	OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK);		   // ī
+	OLED_ShowNum(106, 5, Time_Sec % 10, 1, 8, BLACK);
 
 	OLED_Display(Image_BW, Part);
 
@@ -142,28 +144,28 @@ void KeyNumber_Set_Clock()
 			if (Time_Choose == 6)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(0, 2, TIME[6], 2, 16, BLACK); // Ū
+					OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK); // Ū
 				else
 					OLED_ShowString(0, 2, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 4)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(32, 2, TIME[4], 2, 16, BLACK); // Ղ
+					OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK); // Ղ
 				else
 					OLED_ShowString(32, 2, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 3)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(64, 2, TIME[3], 2, 16, BLACK); // ɕ
+					OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK); // ɕ
 				else
 					OLED_ShowString(64, 2, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 5)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowChinese(112, 2, TIME[5], 16, BLACK); // ל
+					OLED_ShowChinese(112, 2, Time_Week, 16, BLACK); // ל
 				else
 					OLED_ShowString(112, 2, "  ", 16, BLACK);
 			}
@@ -171,9 +173,9 @@ void KeyNumber_Set_Clock()
 			{
 				if (Time_Choose_Flag >= 0)
 				{
-					if (TIME[2] / 10)
-						OLED_ShowChinese(16, 4, TIME[2] / 10 + 10, 16, BLACK);
-					OLED_ShowChinese(32, 4, TIME[2] % 10 + 10, 16, BLACK);
+					if (Time_Hour / 10)
+						OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
+					OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK);
 				} // ʱ
 				else
 					OLED_ShowString(16, 4, "    ", 16, BLACK);
@@ -182,8 +184,8 @@ void KeyNumber_Set_Clock()
 			{
 				if (Time_Choose_Flag >= 0)
 				{
-					OLED_ShowChinese(64, 4, TIME[1] / 10 + 10, 16, BLACK); // ؖ
-					OLED_ShowChinese(80, 4, TIME[1] % 10 + 10, 16, BLACK);
+					OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK); // ؖ
+					OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK);
 				}
 				else
 					OLED_ShowString(64, 4, "    ", 16, BLACK);
@@ -192,8 +194,8 @@ void KeyNumber_Set_Clock()
 			{
 				if (Time_Choose_Flag >= 0)
 				{
-					OLED_ShowNum(98, 5, TIME[0] / 10, 1, 8, BLACK); // ī
-					OLED_ShowNum(106, 5, TIME[0] % 10, 1, 8, BLACK);
+					OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK); // ī
+					OLED_ShowNum(106, 5, Time_Sec % 10, 1, 8, BLACK);
 				}
 				else
 					OLED_ShowString(98, 5, "  ", 16, BLACK);
@@ -222,7 +224,7 @@ void KeyNumber_Set_Clock()
 			Time_Choose_Flag = -5;
 			break;
 		case 2:
-			DS3231_WriteTime();
+			DS3231_WriteTime(Time_Date);
 			EPD_WhiteScreen_White();
 			break;
 		}
@@ -298,10 +300,10 @@ void Alarm_Judge()
 
 void KeyNumber_Set_Alarm()
 { // 5,10,15,20,30,40,60
-	//EPD_WhiteScreen_White();
+	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
-	OLED_ShowChinese(0, 0, 0, 16, BLACK);
+	OLED_ShowChinese(0, 0, 7, 16, BLACK);
 	if (Alarm_Set[1])
 		OLED_ShowChinese(16, 2, 31, 16, BLACK);
 	else
@@ -336,7 +338,7 @@ void KeyNumber_Set_Alarm()
 		OLED_ShowChinese(112, 2, 31, 16, BLACK);
 	else
 		OLED_ShowChinese(112, 2, 32, 16, BLACK);
-	OLED_ShowChinese(112, 0, 7, 16, BLACK);
+	OLED_ShowChinese(112, 0, 0, 16, BLACK);
 	if (Alarm_Date[0] / 10)
 		OLED_ShowChinese(16, 4, Alarm_Date[0] / 10 + 10, 16, BLACK);
 	OLED_ShowChinese(32, 4, Alarm_Date[0] % 10 + 10, 16, BLACK); // ʱ
@@ -639,7 +641,7 @@ void KeyNumber_Set_Alarm()
 // }
 void KeyNumber_Set()
 {
-	//EPD_WhiteScreen_White();
+	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
 	OLED_ShowChinese(48, 0, 28, 16, BLACK);
@@ -1090,7 +1092,7 @@ void KeyNumber_CTRL4()
 // extern int8_t TIME[7] = {0, 0, 0x16, 0x1C, 0x06, 0x01, 0x17};//秒分时日月周年
 unsigned int Time_Sum()
 {
-	return TIME[2] * 60 + TIME[1];
+	return Time_Hour * 60 + Time_Min;
 }
 
 int main()
@@ -1110,6 +1112,7 @@ int main()
 	PWM_Init();
 	LED_Init();
 	SHT30_Init();
+	EXTI0_Init();
 	// AT24C02_Init();
 	// EX0 = 1;
 	// PX1 = 1;
@@ -1125,7 +1128,7 @@ int main()
 
 	// while (1)
 	// 	{DS3231_ReadTime();
-	// 	OLED_ShowNum(0, 2, TIME[0], 2, 16, BLACK);
+	// 	OLED_ShowNum(0, 2, Time_Sec, 2, 16, BLACK);
 	// 		OLED_Display(Image_BW, Part);
 	// 		OLED_Clear(WHITE);
 	// 		OLED_Display(Image_BW, Part);
@@ -1144,7 +1147,7 @@ int main()
 			case 2:
 				EPD_WeakUp();
 				KeyNumber_Set();
-				break; 
+				break;
 			}
 			Refresh_Flag = 1;
 		}
@@ -1173,60 +1176,60 @@ int main()
 		// }
 
 		// īؖʱɕՂלŪ
-		if (TIME_Judge[6] != TIME[6] || Refresh_Flag)
+		if (TIME_Judge[6] != Time_Year || Refresh_Flag)
 		{
-			OLED_ShowNum(0, 2, TIME[6], 2, 16, BLACK);
-			TIME_Judge[6] = TIME[6];
+			OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK);
+			TIME_Judge[6] = Time_Year;
 		}
 		if (Refresh_Flag)
 			OLED_ShowChinese(16, 2, 8, 16, BLACK); // Ū
 
-		if (TIME_Judge[4] != TIME[4] || Refresh_Flag)
+		if (TIME_Judge[4] != Time_Mon || Refresh_Flag)
 		{
-			OLED_ShowNum(32, 2, TIME[4], 2, 16, BLACK);
-			TIME_Judge[4] = TIME[4];
+			OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK);
+			TIME_Judge[4] = Time_Mon;
 		}
 		if (Refresh_Flag)
 			OLED_ShowChinese(48, 2, 9, 16, BLACK); // Ղ
 
-		if (TIME_Judge[3] != TIME[3] || Refresh_Flag)
+		if (TIME_Judge[3] != Time_Day || Refresh_Flag)
 		{
-			OLED_ShowNum(64, 2, TIME[3], 2, 16, BLACK);
-			TIME_Judge[3] = TIME[3];
+			OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK);
+			TIME_Judge[3] = Time_Day;
 		}
 		if (Refresh_Flag)
-			OLED_ShowChinese(80, 2, 7, 16, BLACK); // ɕ
+			OLED_ShowChinese(80, 2, 0, 16, BLACK); // ɕ
 
 		if (Refresh_Flag)
-			OLED_ShowChinese(96, 2, 0, 16, BLACK); // ל
+			OLED_ShowChinese(96, 2, 7, 16, BLACK); // ל
 
-		if (TIME_Judge[5] != TIME[5] || Refresh_Flag)
+		if (TIME_Judge[5] != Time_Week || Refresh_Flag)
 		{
-			OLED_ShowChinese(112, 2, TIME[5], 16, BLACK);
-			TIME_Judge[5] = TIME[5];
+			OLED_ShowChinese(112, 2, Time_Week, 16, BLACK);
+			TIME_Judge[5] = Time_Week;
 		}
 
-		if (TIME_Judge[2] != TIME[2] || Refresh_Flag)
+		if (TIME_Judge[2] != Time_Hour || Refresh_Flag)
 		{
-			OLED_ShowChinese(16, 4, TIME[2] / 10 + 10, 16, BLACK);
-			OLED_ShowChinese(32, 4, TIME[2] % 10 + 10, 16, BLACK); // ʱ
-			TIME_Judge[2] = TIME[2];
+			OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
+			OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK); // ʱ
+			TIME_Judge[2] = Time_Hour;
 		}
 
 		if (Refresh_Flag)
 			OLED_ShowChinese(48, 4, 21, 16, BLACK);
 
-		if (TIME_Judge[1] != TIME[1] || Refresh_Flag)
+		if (TIME_Judge[1] != Time_Min || Refresh_Flag)
 		{
-			OLED_ShowChinese(64, 4, TIME[1] / 10 + 10, 16, BLACK);
-			OLED_ShowChinese(80, 4, TIME[1] % 10 + 10, 16, BLACK); // ؖ
+			OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK);
+			OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK); // ؖ
 		}
 
-		// if (TIME_Judge[0] != TIME[0] || Refresh_Flag)
+		// if (TIME_Judge[0] != Time_Sec || Refresh_Flag)
 		// {
-		// 	OLED_ShowNum(98, 5, TIME[0] / 10, 1, 8, BLACK); // ī
-		// 	OLED_ShowNum(106, 5, TIME[0] % 10, 1, 8, BLACK);
-		// 	TIME_Judge[0] = TIME[0];
+		// 	OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK); // ī
+		// 	OLED_ShowNum(106, 5, Time_Sec % 10, 1, 8, BLACK);
+		// 	TIME_Judge[0] = Time_Sec;
 		// }
 
 		if (Refresh_Flag)
@@ -1314,19 +1317,21 @@ int main()
 		}
 		Refresh_Flag = 0;
 
-		if (TIME_Judge[1] != TIME[1])
+		if (TIME_Judge[1] != Time_Min)
 		{
 			Refresh_Flag = 1;
-			TIME_Judge[1] = TIME[1];
+			TIME_Judge[1] = Time_Min;
 		}
 
 		KeyNum = Key_GetNumber();
 		CmdNum = ASRPRO_Get_CMD();
+		EXTI_Flag = EXTI0_Get_Flag();
 
-		//  if (Voice_Flag)
-		//  {
-		//  	Voice_Disp();
-		//  }
+		if (EXTI_Flag)
+		{
+			PWM_Run();
+			DS3231_ResetAlarm();
+		}
 
 		// if (Music_Time_Flag)
 		// {
@@ -1364,7 +1369,7 @@ int main()
 		// 	PWM_Run_Flag = 0;
 		// 	PWM_Timer_Sec_Sum = 0;
 		// }
-		// if ((!Alarm_Set[TIME[5]]) && lx)
+		// if ((!Alarm_Set[Time_Week]) && lx)
 		// {
 		// 	if (Time_Sum() > 360 && Time_Sum() < 540)
 		// 	{
@@ -1373,7 +1378,7 @@ int main()
 		// 		else
 		// 			Light_Date[Time_Sum() - 360] = lx / 20;
 		// 	}
-		// 	if (Time_Sum() == 541 && (!TIME[0] || (TIME[0] == 1)))
+		// 	if (Time_Sum() == 541 && (!Time_Sec || (Time_Sec == 1)))
 		// 		AT24C02_Write_Light();
 		// }
 		Delay_ms(1000);
@@ -1390,7 +1395,7 @@ int main()
 				ASRPRO_printf("%c%c%c%c", 0xaa, 0x00, 0x02, (uint8_t)SHT.Hum);
 				break;
 			case 3:
-				ASRPRO_printf("%c%c%c%c%c%c", 0xaa, 0x00, 0x03, (uint8_t)TIME[2], (uint8_t)TIME[1], (uint8_t)TIME[0]);
+				ASRPRO_printf("%c%c%c%c%c%c", 0xaa, 0x00, 0x03, (uint8_t)Time_Hour, (uint8_t)Time_Min, (uint8_t)Time_Sec);
 				break;
 			default:
 				break;
@@ -1415,15 +1420,15 @@ int main()
 // 		BlueTooth_SendString("当前时间为：");
 // 		BlueTooth_SendByte(LF);
 // 		BlueTooth_SendString("20");
-// 		BlueTooth_SendNum(TIME[6]);
+// 		BlueTooth_SendNum(Time_Year);
 // 		BlueTooth_SendString("年");
-// 		BlueTooth_SendNum(TIME[4]);
+// 		BlueTooth_SendNum(Time_Mon);
 // 		BlueTooth_SendString("月");
-// 		BlueTooth_SendNum(TIME[3]);
+// 		BlueTooth_SendNum(Time_Day);
 // 		BlueTooth_SendString("日");
 
 // 		BlueTooth_SendString("周");
-// 		switch (TIME[5])
+// 		switch (Time_Week)
 // 		{
 // 		case 1:
 // 			BlueTooth_SendString("一");
@@ -1449,13 +1454,13 @@ int main()
 // 		}
 
 // 		BlueTooth_SendString(" ");
-// 		BlueTooth_SendNum(TIME[2]);
+// 		BlueTooth_SendNum(Time_Hour);
 // 		BlueTooth_SendString(":");
-// 		BlueTooth_SendNum(TIME[1]);
+// 		BlueTooth_SendNum(Time_Min);
 
 // 		BlueTooth_SendString(" ");
-// 		BlueTooth_SendNum(TIME[0] / 10);
-// 		BlueTooth_SendNum(TIME[0] % 10);
+// 		BlueTooth_SendNum(Time_Sec / 10);
+// 		BlueTooth_SendNum(Time_Sec % 10);
 // 		BlueTooth_SendString("s");
 // 		BlueTooth_SendByte(LF);
 // 	}
@@ -1667,13 +1672,13 @@ int main()
 // {
 // 	if (UART_RX_BUF[1] == 1)
 // 	{
-// 		TIME[2] = (UART_RX_BUF[2] >> 4) * 10 + (UART_RX_BUF[2] & 0x0F);
-// 		TIME[1] = (UART_RX_BUF[3] >> 4) * 10 + (UART_RX_BUF[3] & 0x0F);
+// 		Time_Hour = (UART_RX_BUF[2] >> 4) * 10 + (UART_RX_BUF[2] & 0x0F);
+// 		Time_Min = (UART_RX_BUF[3] >> 4) * 10 + (UART_RX_BUF[3] & 0x0F);
 // 		BlueTooth_SendString("时间 ");
-// 		BlueTooth_SendNum(TIME[2]);
+// 		BlueTooth_SendNum(Time_Hour);
 // 		BlueTooth_SendString(":");
-// 		BlueTooth_SendNum(TIME[1] / 10);
-// 		BlueTooth_SendNum(TIME[1] % 10);
+// 		BlueTooth_SendNum(Time_Min / 10);
+// 		BlueTooth_SendNum(Time_Min % 10);
 // 		BlueTooth_SendString(" 已设置完成");
 // 		BlueTooth_SendByte(LF);
 // 	}
@@ -1803,7 +1808,7 @@ int main()
 // }
 // void Music_Time_Hour()
 // {
-// 	switch (TIME[2])
+// 	switch (Time_Hour)
 // 	{
 // 	case 1:
 // 		Music_CMD(4, 1, Play_Folder);
@@ -1882,9 +1887,9 @@ int main()
 
 // void Music_Time()
 // {
-// 	if (TIME[1] >= 0 && TIME[1] < 10)
+// 	if (Time_Min >= 0 && Time_Min < 10)
 // 	{
-// 		switch (TIME[2])
+// 		switch (Time_Hour)
 // 		{
 // 		case 1:
 // 			Music_CMD(3, 1, Play_Folder);
@@ -1960,37 +1965,37 @@ int main()
 // 			break;
 // 		}
 // 	}
-// 	else if (TIME[1] >= 10 && TIME[1] < 20)
+// 	else if (Time_Min >= 10 && Time_Min < 20)
 // 	{
 // 		Music_Time_Hour();
 // 		Music_Time_Wait();
 // 		Music_CMD(5, 10, Play_Folder);
 // 	}
-// 	else if (TIME[1] >= 20 && TIME[1] < 30)
+// 	else if (Time_Min >= 20 && Time_Min < 30)
 // 	{
 // 		Music_Time_Hour();
 // 		Music_Time_Wait();
 // 		Music_CMD(5, 20, Play_Folder);
 // 	}
-// 	else if (TIME[1] >= 30 && TIME[1] < 40)
+// 	else if (Time_Min >= 30 && Time_Min < 40)
 // 	{
 // 		Music_Time_Hour();
 // 		Music_Time_Wait();
 // 		Music_CMD(5, 30, Play_Folder);
 // 	}
-// 	else if (TIME[1] >= 40 && TIME[1] < 50)
+// 	else if (Time_Min >= 40 && Time_Min < 50)
 // 	{
 // 		Music_Time_Hour();
 // 		Music_Time_Wait();
 // 		Music_CMD(5, 40, Play_Folder);
 // 	}
-// 	else if (TIME[1] >= 50 && TIME[1] < 60)
+// 	else if (Time_Min >= 50 && Time_Min < 60)
 // 	{
 // 		Music_Time_Hour();
 // 		Music_Time_Wait();
 // 		Music_CMD(5, 50, Play_Folder);
 // 	}
-// 	if (TIME[2] >= 0 && TIME[2] <= 4)
+// 	if (Time_Hour >= 0 && Time_Hour <= 4)
 // 	{
 // 		Music_Time_Wait();
 // 		Music_CMD(2, 6, Play_Folder);
@@ -2181,87 +2186,11 @@ int main()
 // 	}
 // }
 
-// void PWM_Run()
-// {
-// 	uint8_t i;
-// 	if (RT_Light_Flag)
-// 	{
-// 		for (i = 1; i <= 10; i++)
-// 		{
-// 			UART_SendByte(0xFE);
-// 		}
-// 	}
-// 	RELAY = 0;
-// 	PWM_Timer = 0;
-// 	PWM_Timer_Sec = 0, PWM_Timer_Min = 0;
-// 	Int1_Flag = 0;
-// 	IE1 = 0;
-// 	EX1 = 1;
-// 	EX0 = 0;
-// 	ET0 = 0;
-// 	ET2 = 1;
-// 	while (!Int1_Flag)
-// 	{
-// 		if (RT_Light_Flag)
-// 		{
-// 			if (RI == 1)
-// 				RI = 0;
-// 			PWM_Compare = SBUF;
-// 		}
-// 		else
-// 		{
-// 			if (PWM_Mod == 7)
-// 			{
-// 				PWM_Compare = Light_Date[PWM_Timer_Min + 1];
-// 			}
-// 			else
-// 			{
-// 				switch (PWM_Mod)
-// 				{
-// 				case 0:
-// 					PWM_Compare = (long)(PWM_Timer_Sec_Sum) * (long)(PWM_Timer_Sec_Sum) / 900 + 1;
-// 					break;
-// 				case 1:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 2) * (long)(PWM_Timer_Sec_Sum / 2)) / 900 + 1;
-// 					break;
-// 				case 2:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 3) * (long)(PWM_Timer_Sec_Sum / 3)) / 900 + 1;
-// 					break;
-// 				case 3:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 4) * (long)(PWM_Timer_Sec_Sum / 4)) / 900 + 1;
-// 					break;
-// 				case 4:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 6) * (long)(PWM_Timer_Sec_Sum / 6)) / 900 + 1;
-// 					break;
-// 				case 5:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 8) * (long)(PWM_Timer_Sec_Sum / 8)) / 900 + 1;
-// 					break;
-// 				case 6:
-// 					PWM_Compare = ((long)(PWM_Timer_Sec_Sum / 12) * (long)(PWM_Timer_Sec_Sum / 12)) / 900 + 1;
-// 					break;
-// 				} // 5,10,15,20,30,40,60
-// 			}
-// 		}
-// 	}
-// 	ET2 = 0;
-// 	ET0 = 1;
-// 	IE0 = 0;
-// 	EX0 = 1;
-// 	EX1 = 0;
-// 	RELAY = 1;
-// 	if (RT_Light_Flag)
-// 	{
-// 		for (i = 1; i <= 10; i++)
-// 		{
-// 			UART_SendByte(0xFF);
-// 		}
-// 	}
-// }
 // #define DS3231_STATUS 0x0F
 
 // void Int0_Routine(void) interrupt 0
 // {
-// 	if (Alarm_Enable && Alarm_Set[TIME[5]])
+// 	if (Alarm_Enable && Alarm_Set[Time_Week])
 // 	{
 // 		PWM_Run_Flag = 1;
 // 	}
@@ -2330,7 +2259,7 @@ void TIM2_IRQHandler(void) // 1ms
 				Buzzer_OFF();
 			Buzzer_Counter--;
 		}
-		// if (((!TIME[1]) && (!TIME[0]) && Alarm_Set[0]) && BUZ_Flag)
+		// if (((!Time_Min) && (!Time_Sec) && Alarm_Set[0]) && BUZ_Flag)
 		// {
 		// 	BUZ_Flag = 0;
 		// 	BUZ_Counter = 0;

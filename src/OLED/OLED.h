@@ -41,7 +41,7 @@ typedef struct {
 } PAINT;
 extern PAINT Paint;
 
-extern u8 Image_BW[4736];
+extern u8 Image_BW[OLED_W*OLED_H/8];
 
 #define ROTATE_0   0   // 屏幕正向显示
 #define ROTATE_90  90  // 屏幕旋转90度显示

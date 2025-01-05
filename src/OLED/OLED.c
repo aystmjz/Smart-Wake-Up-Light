@@ -1,7 +1,7 @@
 #include "oled.h"
 #include "oledfont.h"
 
-u8 Image_BW[4736];
+u8 Image_BW[OLED_W*OLED_H/8];
 
 // ≥ı ºªØGPIO
 void OLED_Init(void)

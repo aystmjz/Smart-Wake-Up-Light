@@ -1,11 +1,5 @@
 #include "DS3231.h"
 
-#define DS3231_ADDRESS 0xD0
-#define DS3231_CONTROL 0x0E
-#define DS3231_STATUS 0x0F
-#define DS3231_Temp 0x0B
-#define DS3231_Temp2 0x0C
-
 const uint8_t RTC_CLOCK_ADDR[7] = {0x00, 0x01, 0x02, 0x04, 0x05, 0x03, 0x06}; // 秒分时日月周年
 const uint8_t RTC_ALARM1_ADDR[4] = {0x07, 0x08, 0x09, 0x0A};				  // 秒分时日月周年
 const uint8_t RTC_ALARM2_ADDR[3] = {0x0B, 0x0C, 0x0D};						  // 秒分时日月周年
@@ -16,6 +10,8 @@ int8_t Alarm_Date_Temp[2] = {8, 0};
 uint8_t Alarm_Status[2] = {0, 0};
 uint8_t Alarm_Enable = 1;
 int8_t PWM_Mod = 0;
+
+struct tm Time_Date; // 全局时间(北京时间)
 
 void DS3231_WriteByte(uint8_t WordAddress, uint8_t Data)
 {
@@ -47,30 +43,53 @@ uint8_t DS3231_ReadByte(uint8_t WordAddress)
 	return Data;
 }
 
-void DS3231_ReadTime()
+/// @brief 读取时钟(闹钟)数据
+void DS3231_ReadTime(void)
 {
-	uint8_t i, Temp;
-	for (i = 0; i < 7; i++)
-	{
-		if (i < 2)
+    uint8_t i, temp, time[7];
+    for (i = 0; i < 7; i++) {
+				if (i < 2)
 		{
 			Alarm_Status[i] = (DS3231_ReadByte(DS3231_STATUS) & (0x01 << i));
 		}
-		Temp = DS3231_ReadByte(RTC_CLOCK_ADDR[i]);
-		TIME[i] = (Temp / 16) * 10 + (Temp % 16);
-	}
+        temp    = DS3231_ReadByte(RTC_CLOCK_ADDR[i]);
+        time[i] = (temp / 16) * 10 + (temp % 16);
+    }
+
+    Time_Date.tm_year = time[6] + 2000 - 1900;
+    Time_Date.tm_mon  = time[4] - 1;
+    Time_Date.tm_mday = time[3];
+    Time_Date.tm_hour = time[2];
+    Time_Date.tm_min  = time[1];
+    Time_Date.tm_sec  = time[0];
+    mktime(&Time_Date); // 计算星期
 }
 
-void DS3231_WriteTime()
+/// @brief 获取时间戳
+/// @return 时间戳(北京时间)
+time_t DS3231_GetTimeStamp(void)
 {
-	uint8_t i;
-	for (i = 0; i < 7; i++)
-	{
-		DS3231_WriteByte(RTC_CLOCK_ADDR[i], (TIME[i] / 10) * 16 + TIME[i] % 10);
-	}
+    return (mktime(&Time_Date) - 8 * 60 * 60);
 }
 
-void DS3231_WriteAlarm()
+/// @brief 写入时钟数据
+void DS3231_WriteTime(struct tm time_data)
+{
+    uint8_t time[7];
+    mktime(&time_data); // 计算星期
+    time[6] = time_data.tm_year + 1900 - 2000;
+    time[4] = time_data.tm_mon + 1;
+    time[5] = time_data.tm_wday;
+    time[3] = time_data.tm_mday;
+    time[2] = time_data.tm_hour;
+    time[1] = time_data.tm_min;
+    time[0] = time_data.tm_sec;
+    for (uint8_t i = 0; i < 7; i++) {
+        DS3231_WriteByte(RTC_CLOCK_ADDR[i], (time[i] / 10) * 16 + time[i] % 10);
+    }
+}
+
+void DS3231_WriteAlarm(void)
 {
 	uint8_t i, Temp = 0;
 	DS3231_WriteByte(RTC_ALARM1_ADDR[0], 0);
@@ -88,7 +107,13 @@ void DS3231_WriteAlarm()
 	DS3231_WriteByte(DS3231_Temp, Temp);
 }
 
-void DS3231_Init()
+/// @brief 复位闹钟
+void DS3231_ResetAlarm(void)
+{
+    DS3231_WriteByte(DS3231_STATUS, 0x00);
+}
+
+void DS3231_Init(void)
 {
 	DS3231_I2C_Init();
 	uint8_t i, Temp;
