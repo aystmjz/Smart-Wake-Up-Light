@@ -8,7 +8,7 @@
 void PWM_Init(void);
 void PWM_Enable(void);
 void PWM_Disable(void);
-void PWM_Set(uint8_t Percent);
+void PWM_Set(uint16_t Percent);
 void PWM_Run(void);
 
 #endif

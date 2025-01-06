@@ -45,7 +45,7 @@ void PWM_Disable(void)
     TIM_CtrlPWMOutputs(TIM1, DISABLE);
 }
 
-void PWM_Set(uint8_t Percent)
+void PWM_Set(uint16_t Percent)
 {
     if (Percent > 100)
         Percent = 100;

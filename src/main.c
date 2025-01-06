@@ -1,4 +1,4 @@
-#include "sys.h"
+﻿#include "sys.h"
 #include "UART.h"
 // #include "BlueTooth.h"
 // #include "Timer0.h"
@@ -111,21 +111,21 @@ void KeyNumber_Set_Clock()
 	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
-	OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK);
-	OLED_ShowChinese(16, 2, 8, 16, BLACK); // Ū
-	OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK);
-	OLED_ShowChinese(48, 2, 9, 16, BLACK); // Ղ
-	OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK);
-	OLED_ShowChinese(80, 2, 0, 16, BLACK); // ɕ
-	OLED_ShowChinese(96, 2, 7, 16, BLACK); // ל
-	OLED_ShowChinese(112, 2, Time_Week, 16, BLACK);
-	if (Time_Hour / 10)
-		OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
-	OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK); // ʱ
-	OLED_ShowChinese(48, 4, 21, 16, BLACK);
-	OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK);
-	OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK); // ؖ
-	OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK);		   // ī
+	OLED_ShowNum(0, 2 * 16, Time_Year, 2, 16, BLACK);
+	OLED_ShowChinese(16, 2 * 16, "年", 16, BLACK); // Ū
+	OLED_ShowNum(32, 2 * 16, Time_Mon, 2, 16, BLACK);
+	OLED_ShowChinese(48, 2 * 16, "月", 16, BLACK); // Ղ
+	OLED_ShowNum(64, 2 * 16, Time_Day, 2 * 16, 16, BLACK);
+	OLED_ShowChinese(80, 2 * 16, "日", 16, BLACK); // ɕ
+	OLED_ShowChinese(96, 2 * 16, "周", 16, BLACK); // ל
+	// OLED_ShowChinese(112, 2*16,Time_Week, 16, BLACK);
+	// if (Time_Hour / 10)
+	//	OLED_ShowChinese(16, 4*16, Time_Hour / 10 + 10, 16, BLACK);
+	// OLED_ShowChinese(32, 4*16, Time_Hour % 10 + 10, 16, BLACK); // ʱ
+	OLED_ShowChinese(48, 4 * 16, ":", 16, BLACK);
+	// OLED_ShowChinese(64, 4*16, Time_Min / 10 + 10, 16, BLACK);
+	// OLED_ShowChinese(80, 4*16, Time_Min % 10 + 10, 16, BLACK); // ؖ
+	OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK); // ī
 	OLED_ShowNum(106, 5, Time_Sec % 10, 1, 8, BLACK);
 
 	OLED_Display(Image_BW, Part);
@@ -144,51 +144,51 @@ void KeyNumber_Set_Clock()
 			if (Time_Choose == 6)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK); // Ū
+					OLED_ShowNum(0, 2 * 16, Time_Year, 2, 16, BLACK); // Ū
 				else
-					OLED_ShowString(0, 2, "  ", 16, BLACK);
+					OLED_ShowString(0, 2 * 16, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 4)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK); // Ղ
+					OLED_ShowNum(32, 2 * 16, Time_Mon, 2, 16, BLACK); // Ղ
 				else
-					OLED_ShowString(32, 2, "  ", 16, BLACK);
+					OLED_ShowString(32, 2 * 16, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 3)
 			{
 				if (Time_Choose_Flag >= 0)
-					OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK); // ɕ
+					OLED_ShowNum(64, 2 * 16, Time_Day, 2, 16, BLACK);
 				else
-					OLED_ShowString(64, 2, "  ", 16, BLACK);
+					OLED_ShowString(64, 2 * 16, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 5)
 			{
-				if (Time_Choose_Flag >= 0)
-					OLED_ShowChinese(112, 2, Time_Week, 16, BLACK); // ל
-				else
-					OLED_ShowString(112, 2, "  ", 16, BLACK);
+				// if (Time_Choose_Flag >= 0)
+				// 	OLED_ShowChinese(112, 2*16, Time_Week, 16, BLACK);
+				// else
+				// 	OLED_ShowString(112, 2*16, "  ", 16, BLACK);
 			}
 			if (Time_Choose == 2)
 			{
 				if (Time_Choose_Flag >= 0)
 				{
-					if (Time_Hour / 10)
-						OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
-					OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK);
-				} // ʱ
+					// if (Time_Hour / 10)
+					//	OLED_ShowChinese(16, 4*16, Time_Hour / 10 + 10, 16, BLACK);
+					// OLED_ShowChinese(32, 4*16, Time_Hour % 10 + 10, 16, BLACK);
+				}
 				else
-					OLED_ShowString(16, 4, "    ", 16, BLACK);
+					OLED_ShowString(16, 4 * 16, "    ", 16, BLACK);
 			}
 			if (Time_Choose == 1)
 			{
 				if (Time_Choose_Flag >= 0)
 				{
-					OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK); // ؖ
-					OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK);
+					// OLED_ShowChinese(64, 4*16, Time_Min / 10 + 10, 16, BLACK); // ؖ
+					// OLED_ShowChinese(80, 4*16, Time_Min % 10 + 10, 16, BLACK);
 				}
 				else
-					OLED_ShowString(64, 4, "    ", 16, BLACK);
+					OLED_ShowString(64, 4 * 16, "    ", 16, BLACK);
 			}
 			if (Time_Choose == 0)
 			{
@@ -303,93 +303,93 @@ void KeyNumber_Set_Alarm()
 	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
-	OLED_ShowChinese(0, 0, 7, 16, BLACK);
+	OLED_ShowChinese(0, 0 * 16, "周", 16, BLACK);
 	if (Alarm_Set[1])
-		OLED_ShowChinese(16, 2, 31, 16, BLACK);
+		OLED_ShowChinese(16, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(16, 2, 32, 16, BLACK);
-	OLED_ShowChinese(16, 0, 1, 16, BLACK);
+		OLED_ShowChinese(16, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(16, 0 * 16, "一", 16, BLACK);
 	if (Alarm_Set[2])
-		OLED_ShowChinese(32, 2, 31, 16, BLACK);
+		OLED_ShowChinese(32, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(32, 2, 32, 16, BLACK);
-	OLED_ShowChinese(32, 0, 2, 16, BLACK);
+		OLED_ShowChinese(32, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(32, 0 * 16, "二", 16, BLACK);
 	if (Alarm_Set[3])
-		OLED_ShowChinese(48, 2, 31, 16, BLACK);
+		OLED_ShowChinese(48, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(48, 2, 32, 16, BLACK);
-	OLED_ShowChinese(48, 0, 3, 16, BLACK);
+		OLED_ShowChinese(48, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(48, 0 * 16, "三", 16, BLACK);
 	if (Alarm_Set[4])
-		OLED_ShowChinese(64, 2, 31, 16, BLACK);
+		OLED_ShowChinese(64, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(64, 2, 32, 16, BLACK);
-	OLED_ShowChinese(64, 0, 4, 16, BLACK);
+		OLED_ShowChinese(64, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(64, 0 * 16, "四", 16, BLACK);
 	if (Alarm_Set[5])
-		OLED_ShowChinese(80, 2, 31, 16, BLACK);
+		OLED_ShowChinese(80, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(80, 2, 32, 16, BLACK);
-	OLED_ShowChinese(80, 0, 5, 16, BLACK);
+		OLED_ShowChinese(80, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(80, 0 * 16, "五", 16, BLACK);
 	if (Alarm_Set[6])
-		OLED_ShowChinese(96, 2, 31, 16, BLACK);
+		OLED_ShowChinese(96, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(96, 2, 32, 16, BLACK);
-	OLED_ShowChinese(96, 0, 6, 16, BLACK);
+		OLED_ShowChinese(96, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(96, 0 * 16, "六", 16, BLACK);
 	if (Alarm_Set[7])
-		OLED_ShowChinese(112, 2, 31, 16, BLACK);
+		OLED_ShowChinese(112, 2 * 16, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(112, 2, 32, 16, BLACK);
-	OLED_ShowChinese(112, 0, 0, 16, BLACK);
-	if (Alarm_Date[0] / 10)
-		OLED_ShowChinese(16, 4, Alarm_Date[0] / 10 + 10, 16, BLACK);
-	OLED_ShowChinese(32, 4, Alarm_Date[0] % 10 + 10, 16, BLACK); // ʱ
-	OLED_ShowChinese(48, 4, 21, 16, BLACK);
-	OLED_ShowChinese(64, 4, Alarm_Date[1] / 10 + 10, 16, BLACK); // ؖ
-	OLED_ShowChinese(80, 4, Alarm_Date[1] % 10 + 10, 16, BLACK);
+		OLED_ShowChinese(112, 2 * 16, "x", 16, BLACK);
+	OLED_ShowChinese(112, 0 * 16, "日", 16, BLACK);
+	// if (Alarm_Date[0] / 10)
+	//	OLED_ShowChinese(16, 4*16, Alarm_Date[0] / 10 + 10, 16, BLACK);
+	// OLED_ShowChinese(32, 4*16, Alarm_Date[0] % 10 + 10, 16, BLACK); // ʱ
+	OLED_ShowChinese(48, 4 * 16, ":", 16, BLACK);
+	// OLED_ShowChinese(64, 4*16, Alarm_Date[1] / 10 + 10, 16, BLACK); // ؖ
+	// OLED_ShowChinese(80, 4*16, Alarm_Date[1] % 10 + 10, 16, BLACK);
 
-	OLED_ShowChinese(0, 6, 24, 16, BLACK);
-	OLED_ShowChinese(16, 6, 25, 16, BLACK);
+	OLED_ShowChinese(0, 6, "闹", 16, BLACK);
+	OLED_ShowChinese(16, 6, "钟", 16, BLACK);
 	if (Alarm_Enable)
-		OLED_ShowChinese(32, 6, 31, 16, BLACK);
+		OLED_ShowChinese(32, 6, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(32, 6, 32, 16, BLACK);
-	OLED_ShowChinese(48, 6, 33, 16, BLACK);
-	OLED_ShowChinese(64, 6, 34, 16, BLACK);
-	OLED_ShowChinese(80, 6, 35, 16, BLACK);
-	OLED_ShowChinese(96, 6, 36, 16, BLACK);
+		OLED_ShowChinese(32, 6, "x", 16, BLACK);
+	OLED_ShowChinese(48, 6, "整", 16, BLACK);
+	OLED_ShowChinese(64, 6, "点", 16, BLACK);
+	OLED_ShowChinese(80, 6, "报", 16, BLACK);
+	OLED_ShowChinese(96, 6, "时", 16, BLACK);
 	if (Alarm_Set[0])
-		OLED_ShowChinese(112, 6, 31, 16, BLACK);
+		OLED_ShowChinese(112, 6, "√", 16, BLACK);
 	else
-		OLED_ShowChinese(112, 6, 32, 16, BLACK);
+		OLED_ShowChinese(112, 6, "x", 16, BLACK);
 
 	switch (PWM_Mod) // 5,10,15,20,30,40,60
 	{
 	case 0:
-		OLED_ShowNum(104, 4, 5, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 5, 2, 16, BLACK);
 		break;
 	case 1:
-		OLED_ShowNum(104, 4, 10, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 10, 2, 16, BLACK);
 		break;
 	case 2:
-		OLED_ShowNum(104, 4, 15, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 15, 2, 16, BLACK);
 		break;
 	case 3:
-		OLED_ShowNum(104, 4, 20, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 20, 2, 16, BLACK);
 		break;
 	case 4:
-		OLED_ShowNum(104, 4, 30, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 30, 2, 16, BLACK);
 		break;
 	case 5:
-		OLED_ShowNum(104, 4, 40, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 40, 2, 16, BLACK);
 		break;
 	case 6:
-		OLED_ShowNum(104, 4, 60, 2, 16, BLACK);
+		OLED_ShowNum(104, 4 * 16, 60, 2, 16, BLACK);
 		break;
 	case 7:
-		OLED_ShowString(104, 4, "A", 16, BLACK);
-		OLED_ShowString(112, 4, "T", 16, BLACK);
+		OLED_ShowString(104, 4 * 16, "A", 16, BLACK);
+		OLED_ShowString(112, 4 * 16, "T", 16, BLACK);
 		break;
 	} // 5,10,15,20,30,40,60,Auto
-	OLED_ShowChar(120, 4, 'm', 16, BLACK);
+	OLED_ShowChar(120, 4 * 16, 'm', 16, BLACK);
 
 	OLED_Display(Image_BW, Part);
 
@@ -407,77 +407,77 @@ void KeyNumber_Set_Alarm()
 			if (Alarm_Choose == 0)
 			{
 				if (Alarm_Set[1])
-					OLED_ShowChinese(16, 2, 31, 16, BLACK);
+					OLED_ShowChinese(16, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(16, 2, 32, 16, BLACK);
+					OLED_ShowChinese(16, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(16, 0, 1, 16, BLACK);
+					OLED_ShowChinese(16, 0, "一", 16, BLACK);
 				else
 					OLED_ShowString(16, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 1)
 			{
 				if (Alarm_Set[2])
-					OLED_ShowChinese(32, 2, 31, 16, BLACK);
+					OLED_ShowChinese(32, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(32, 2, 32, 16, BLACK);
+					OLED_ShowChinese(32, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(32, 0, 2, 16, BLACK);
+					OLED_ShowChinese(32, 0 * 16, "二", 16, BLACK);
 				else
 					OLED_ShowString(32, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 2)
 			{
 				if (Alarm_Set[3])
-					OLED_ShowChinese(48, 2, 31, 16, BLACK);
+					OLED_ShowChinese(48, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(48, 2, 32, 16, BLACK);
+					OLED_ShowChinese(48, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(48, 0, 3, 16, BLACK);
+					OLED_ShowChinese(48, 0 * 16, "三", 16, BLACK);
 				else
 					OLED_ShowString(48, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 3)
 			{
 				if (Alarm_Set[4])
-					OLED_ShowChinese(64, 2, 31, 16, BLACK);
+					OLED_ShowChinese(64, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(64, 2, 32, 16, BLACK);
+					OLED_ShowChinese(64, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(64, 0, 4, 16, BLACK);
+					OLED_ShowChinese(64, 0 * 16, "四", 16, BLACK);
 				else
 					OLED_ShowString(64, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 4)
 			{
 				if (Alarm_Set[5])
-					OLED_ShowChinese(80, 2, 31, 16, BLACK);
+					OLED_ShowChinese(80, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(80, 2, 32, 16, BLACK);
+					OLED_ShowChinese(80, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(80, 0, 5, 16, BLACK);
+					OLED_ShowChinese(80, 0, "五", 16, BLACK);
 				else
 					OLED_ShowString(80, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 5)
 			{
 				if (Alarm_Set[6])
-					OLED_ShowChinese(96, 2, 31, 16, BLACK);
+					OLED_ShowChinese(96, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(96, 2, 32, 16, BLACK);
+					OLED_ShowChinese(96, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(96, 0, 6, 16, BLACK);
+					OLED_ShowChinese(96, 0, "六", 16, BLACK);
 				else
 					OLED_ShowString(96, 0, "  ", 16, BLACK);
 			}
 			if (Alarm_Choose == 6)
 			{
 				if (Alarm_Set[7])
-					OLED_ShowChinese(112, 2, 31, 16, BLACK);
+					OLED_ShowChinese(112, 2 * 16, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(112, 2, 32, 16, BLACK);
+					OLED_ShowChinese(112, 2 * 16, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChinese(112, 0, 7, 16, BLACK);
+					OLED_ShowChinese(112, 0, "周", 16, BLACK);
 				else
 					OLED_ShowString(112, 0, "  ", 16, BLACK);
 			}
@@ -486,35 +486,35 @@ void KeyNumber_Set_Alarm()
 			{
 				if (Alarm_Choose_Flag >= 0)
 				{
-					if (Alarm_Date[0] / 10)
-						OLED_ShowChinese(16, 4, Alarm_Date[0] / 10 + 10, 16, BLACK);
-					OLED_ShowChinese(32, 4, Alarm_Date[0] % 10 + 10, 16, BLACK);
-				} // ʱ
+					// if (Alarm_Date[0] / 10)
+					// 	OLED_ShowChinese(16, 4*16, Alarm_Date[0] / 10 + 10, 16, BLACK);
+					// OLED_ShowChinese(32, 4*16, Alarm_Date[0] % 10 + 10, 16, BLACK);
+				}
 				else
-					OLED_ShowString(16, 4, "    ", 16, BLACK);
+					OLED_ShowString(16, 4 * 16, "    ", 16, BLACK);
 			}
 
 			if (Alarm_Choose == 8)
 			{
 				if (Alarm_Choose_Flag >= 0)
 				{
-					OLED_ShowChinese(64, 4, Alarm_Date[1] / 10 + 10, 16, BLACK); // ؖ
-					OLED_ShowChinese(80, 4, Alarm_Date[1] % 10 + 10, 16, BLACK);
+					// OLED_ShowChinese(64, 4*16, Alarm_Date[1] / 10 + 10, 16, BLACK); // ؖ
+					// OLED_ShowChinese(80, 4*16, Alarm_Date[1] % 10 + 10, 16, BLACK);
 				}
 				else
-					OLED_ShowString(64, 4, "    ", 16, BLACK);
+					OLED_ShowString(64, 4 * 16, "    ", 16, BLACK);
 			}
 
 			if (Alarm_Choose == 9)
 			{
 				if (Alarm_Enable)
-					OLED_ShowChinese(32, 6, 31, 16, BLACK);
+					OLED_ShowChinese(32, 6, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(32, 6, 32, 16, BLACK);
+					OLED_ShowChinese(32, 6, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
 				{
-					OLED_ShowChinese(0, 6, 24, 16, BLACK);
-					OLED_ShowChinese(16, 6, 25, 16, BLACK);
+					OLED_ShowChinese(0, 6, "闹", 16, BLACK);
+					OLED_ShowChinese(16, 6, "钟", 16, BLACK);
 				}
 				else
 					OLED_ShowString(0, 6, "    ", 16, BLACK);
@@ -523,15 +523,15 @@ void KeyNumber_Set_Alarm()
 			if (Alarm_Choose == 10)
 			{
 				if (Alarm_Set[0])
-					OLED_ShowChinese(112, 6, 31, 16, BLACK);
+					OLED_ShowChinese(112, 6, "√", 16, BLACK);
 				else
-					OLED_ShowChinese(112, 6, 32, 16, BLACK);
+					OLED_ShowChinese(112, 6, "x", 16, BLACK);
 				if (Alarm_Choose_Flag >= 0)
 				{
-					OLED_ShowChinese(48, 6, 33, 16, BLACK);
-					OLED_ShowChinese(64, 6, 34, 16, BLACK);
-					OLED_ShowChinese(80, 6, 35, 16, BLACK);
-					OLED_ShowChinese(96, 6, 36, 16, BLACK);
+					OLED_ShowChinese(48, 6, "整", 16, BLACK);
+					OLED_ShowChinese(64, 6, "点", 16, BLACK);
+					OLED_ShowChinese(80, 6, "报", 16, BLACK);
+					OLED_ShowChinese(96, 6, "时", 16, BLACK);
 				}
 				else
 					OLED_ShowString(48, 6, "        ", 16, BLACK);
@@ -542,35 +542,35 @@ void KeyNumber_Set_Alarm()
 				switch (PWM_Mod)
 				{
 				case 0:
-					OLED_ShowNum(104, 4, 5, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 5, 2, 16, BLACK);
 					break;
 				case 1:
-					OLED_ShowNum(104, 4, 10, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 10, 2, 16, BLACK);
 					break;
 				case 2:
-					OLED_ShowNum(104, 4, 15, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 15, 2, 16, BLACK);
 					break;
 				case 3:
-					OLED_ShowNum(104, 4, 20, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 20, 2, 16, BLACK);
 					break;
 				case 4:
-					OLED_ShowNum(104, 4, 30, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 30, 2, 16, BLACK);
 					break;
 				case 5:
-					OLED_ShowNum(104, 4, 40, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 40, 2, 16, BLACK);
 					break;
 				case 6:
-					OLED_ShowNum(104, 4, 60, 2, 16, BLACK);
+					OLED_ShowNum(104, 4 * 16, 60, 2, 16, BLACK);
 					break;
 				case 7:
-					OLED_ShowString(104, 4, "A", 16, BLACK);
-					OLED_ShowString(112, 4, "T", 16, BLACK);
+					OLED_ShowString(104, 4 * 16, "A", 16, BLACK);
+					OLED_ShowString(112, 4 * 16, "T", 16, BLACK);
 					break;
 				} // 5,10,15,20,30,40,60
 				if (Alarm_Choose_Flag >= 0)
-					OLED_ShowChar(120, 4, 'm', 16, BLACK);
+					OLED_ShowChar(120, 4 * 16, 'm', 16, BLACK);
 				else
-					OLED_ShowString(120, 4, " ", 16, BLACK);
+					OLED_ShowString(120, 4 * 16, " ", 16, BLACK);
 			}
 
 			Alarm_Choose_Flag++;
@@ -644,17 +644,17 @@ void KeyNumber_Set()
 	// EPD_WhiteScreen_White();
 	OLED_Clear(WHITE);
 
-	OLED_ShowChinese(48, 0, 28, 16, BLACK);
-	OLED_ShowChinese(64, 0, 29, 16, BLACK);
+	OLED_ShowChinese(48, 0, "设", 16, BLACK);
+	OLED_ShowChinese(64, 0, "置", 16, BLACK);
 
-	OLED_ShowChinese(0, 3, 22, 16, BLACK);
-	OLED_ShowChinese(16, 3, 23, 16, BLACK);
+	OLED_ShowChinese(0, 3 * 16, "时", 16, BLACK);
+	OLED_ShowChinese(16, 3 * 16, "间", 16, BLACK);
 
-	OLED_ShowChinese(48, 3, 26, 16, BLACK);
-	OLED_ShowChinese(64, 3, 27, 16, BLACK);
+	OLED_ShowChinese(48, 3 * 16, "其", 16, BLACK);
+	OLED_ShowChinese(64, 3 * 16, "他", 16, BLACK);
 
-	OLED_ShowChinese(96, 3, 24, 16, BLACK);
-	OLED_ShowChinese(112, 3, 25, 16, BLACK);
+	OLED_ShowChinese(96, 3 * 16, "闹", 16, BLACK);
+	OLED_ShowChinese(112, 3 * 16, "钟", 16, BLACK);
 
 	OLED_Display(Image_BW, Part);
 
@@ -1133,6 +1133,19 @@ int main()
 	// 		OLED_Clear(WHITE);
 	// 		OLED_Display(Image_BW, Part);
 	// 	}
+
+	OLED_ShowChinese(270, 50, "编", OLED_8X16, BLACK);
+	OLED_ShowString(0, 80, "编编编123abc编编编s65165165v", OLED_8X16, BLACK);
+	OLED_Printf(0, 100, OLED_8X16, BLACK, "编编编%d", 523);
+	//OLED_ShowImage(0, 0, OLED_H, OLED_W, Image_1, BLACK); // 显示图片
+
+	OLED_Display(Image_BW, Part);
+
+	while (1)
+	{
+		/* code */
+	}
+
 	while (1)
 	{
 		KeyNum = Key_GetNumber();
@@ -1161,7 +1174,7 @@ int main()
 		if (Refresh_Flag)
 			OLED_ShowChar(16, 0, '.', 16, BLACK);
 		OLED_ShowNum(24, 0, (uint8_t)(SHT.Temp * 10.0) % 10, 1, 16, BLACK);
-		OLED_ShowChinese(32, 0, 20, 16, BLACK);
+		OLED_ShowChinese(32, 0, "℃", 16, BLACK);
 
 		OLED_ShowNum(52, 0, (uint8_t)SHT.Hum, 2, 16, BLACK);
 		if (Refresh_Flag)
@@ -1178,51 +1191,51 @@ int main()
 		// īؖʱɕՂלŪ
 		if (TIME_Judge[6] != Time_Year || Refresh_Flag)
 		{
-			OLED_ShowNum(0, 2, Time_Year, 2, 16, BLACK);
+			OLED_ShowNum(0, 2 * 16, Time_Year, 2, 16, BLACK);
 			TIME_Judge[6] = Time_Year;
 		}
 		if (Refresh_Flag)
-			OLED_ShowChinese(16, 2, 8, 16, BLACK); // Ū
+			OLED_ShowChinese(16, 2 * 16, "年", 16, BLACK); // Ū
 
 		if (TIME_Judge[4] != Time_Mon || Refresh_Flag)
 		{
-			OLED_ShowNum(32, 2, Time_Mon, 2, 16, BLACK);
+			OLED_ShowNum(32, 2 * 16, Time_Mon, 2, 16, BLACK);
 			TIME_Judge[4] = Time_Mon;
 		}
 		if (Refresh_Flag)
-			OLED_ShowChinese(48, 2, 9, 16, BLACK); // Ղ
+			OLED_ShowChinese(48, 2 * 16, "月", 16, BLACK); // Ղ
 
 		if (TIME_Judge[3] != Time_Day || Refresh_Flag)
 		{
-			OLED_ShowNum(64, 2, Time_Day, 2, 16, BLACK);
+			OLED_ShowNum(64, 2 * 16, Time_Day, 2, 16, BLACK);
 			TIME_Judge[3] = Time_Day;
 		}
 		if (Refresh_Flag)
-			OLED_ShowChinese(80, 2, 0, 16, BLACK); // ɕ
+			OLED_ShowChinese(80, 2 * 16, 0, 16, BLACK); // ɕ
 
 		if (Refresh_Flag)
-			OLED_ShowChinese(96, 2, 7, 16, BLACK); // ל
+			OLED_ShowChinese(96, 2 * 16, "周", 16, BLACK); // ל
 
 		if (TIME_Judge[5] != Time_Week || Refresh_Flag)
 		{
-			OLED_ShowChinese(112, 2, Time_Week, 16, BLACK);
+			// OLED_ShowChinese(112, 2*16, Time_Week, 16, BLACK);
 			TIME_Judge[5] = Time_Week;
 		}
 
 		if (TIME_Judge[2] != Time_Hour || Refresh_Flag)
 		{
-			OLED_ShowChinese(16, 4, Time_Hour / 10 + 10, 16, BLACK);
-			OLED_ShowChinese(32, 4, Time_Hour % 10 + 10, 16, BLACK); // ʱ
+			// OLED_ShowChinese(16, 4*16, Time_Hour / 10 + 10, 16, BLACK);
+			// OLED_ShowChinese(32, 4*16, Time_Hour % 10 + 10, 16, BLACK); // ʱ
 			TIME_Judge[2] = Time_Hour;
 		}
 
 		if (Refresh_Flag)
-			OLED_ShowChinese(48, 4, 21, 16, BLACK);
+			OLED_ShowChinese(48, 4 * 16, ":", 16, BLACK);
 
 		if (TIME_Judge[1] != Time_Min || Refresh_Flag)
 		{
-			OLED_ShowChinese(64, 4, Time_Min / 10 + 10, 16, BLACK);
-			OLED_ShowChinese(80, 4, Time_Min % 10 + 10, 16, BLACK); // ؖ
+			// OLED_ShowChinese(64, 4*16, Time_Min / 10 + 10, 16, BLACK);
+			// OLED_ShowChinese(80, 4*16, Time_Min % 10 + 10, 16, BLACK); // ؖ
 		}
 
 		// if (TIME_Judge[0] != Time_Sec || Refresh_Flag)
@@ -1234,7 +1247,7 @@ int main()
 
 		if (Refresh_Flag)
 			if (Alarm_Enable)
-				OLED_ShowChinese(0, 6, 30, 16, BLACK); // ŖדҪ־
+				OLED_ShowChinese(0, 6, "■", 16, BLACK); // ŖדҪ־
 
 		if (Alarm_Date_Judge[0] != Alarm_Date[0] || Refresh_Flag)
 		{
@@ -1264,7 +1277,7 @@ int main()
 		if (Alarm_Set_Judge[2] != Alarm_Set[2] || Refresh_Flag)
 		{
 			if (Alarm_Set[2])
-				OLED_ShowNum(72, 7, 2, 1, 8, BLACK);
+				OLED_ShowNum(72, 7, 2 * 16, 1, 8, BLACK);
 			Alarm_Set_Judge[2] = Alarm_Set[2];
 		}
 

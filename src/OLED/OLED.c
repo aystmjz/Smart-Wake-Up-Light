@@ -1,7 +1,6 @@
-#include "oled.h"
-#include "oledfont.h"
+#include "OLED.h"
 
-u8 Image_BW[OLED_W*OLED_H/8];
+u8 Image_BW[OLED_W * OLED_H / 8];
 
 // 初始化GPIO
 void OLED_Init(void)
@@ -147,9 +146,9 @@ void OLED_GUIInit(void)
     OLED_WR_REG(0x18); // Read built-in temperature sensor
     OLED_WR_DATA8(0x80);
 
-    OLED_WR_REG(0x4E); // set RAM x address count to 0;
+    OLED_WR_REG(0x4E); // set RAM X address count to 0;
     OLED_WR_DATA8(0x00);
-    OLED_WR_REG(0x4F); // set RAM y address count to 0X199;
+    OLED_WR_REG(0x4F); // set RAM Y address count to 0X199;
     OLED_WR_DATA8(0x27);
     OLED_WR_DATA8(0x01);
 
@@ -347,7 +346,7 @@ void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color)
     int dx, dy;
     int XAddway, YAddway;
     int Esp;
-    char Dotted_Len;
+    u8 Dotted_Len;
     Xpoint = Xstart;
     Ypoint = Ystart;
     dx = (int)Xend - (int)Xstart >= 0 ? Xend - Xstart : Xstart - Xend;
@@ -457,71 +456,60 @@ void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode)
     }
 }
 
-// 显示字符
-void OLED_ShowChar(u16 x, u16 y, u16 chr, u16 size1, u16 color)
+/**
+ * @brief 显示字符
+ * @param X 字符显示的起始X坐标
+ * @param Y 字符显示的起始Y坐标
+ * @param Char 要显示的字符
+ * @param Size 字体大小
+ * @param Color 显示颜色
+ */
+void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
 {
-    x += 80;
-    y *= 16;
-    u16 i, m, temp, size2, chr1;
+    u16 i, m, temp, Size2, Char1;
     u16 x0, y0;
-    x += 1, y += 1, x0 = x, y0 = y;
-    if (size1 == 8)
-        size2 = 6;
+    X += 1, Y += 1, x0 = X, y0 = Y;
+    if (Size == 8)
+        Size2 = 6;
     else
-        size2 = (size1 / 8 + ((size1 % 8) ? 1 : 0)) * (size1 / 2); // 得到字体一个字符对应点阵集所占的字节数
-    chr1 = chr - ' ';                                              // 计算偏移后的值
-    for (i = 0; i < size2; i++)
+        Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) * (Size / 2); // 得到字体一个字符对应点阵集所占的字节数
+    Char1 = Char - ' ';                                         // 计算偏移后的值
+    for (i = 0; i < Size2; i++)
     {
-        if (size1 == 8)
+        if (Size == 8)
         {
-            temp = asc2_0806[chr1][i];
+            temp = OLED_ASCII0806[Char1][i];
         } // 调用0806字体
-        else if (size1 == 12)
+        else if (Size == 12)
         {
-            temp = asc2_1206[chr1][i];
+            temp = OLED_ASCII1206[Char1][i];
         } // 调用1206字体
-        else if (size1 == 16)
+        else if (Size == 16)
         {
-            temp = asc2_1608[chr1][i];
+            temp = OLED_ASCII1608[Char1][i];
         } // 调用1608字体
-        else if (size1 == 24)
+        else if (Size == 24)
         {
-            temp = asc2_2412[chr1][i];
+            temp = OLED_ASCII2412[Char1][i];
         } // 调用2412字体
         else
             return;
         for (m = 0; m < 8; m++)
         {
             if (temp & 0x01)
-                OLED_DrawPoint(x, y, color);
+                OLED_DrawPoint(X, Y, Color);
             else
-                OLED_DrawPoint(x, y, !color);
+                OLED_DrawPoint(X, Y, !Color);
             temp >>= 1;
-            y++;
+            Y++;
         }
-        x++;
-        if ((size1 != 8) && ((x - x0) == size1 / 2))
+        X++;
+        if ((Size != 8) && ((X - x0) == Size / 2))
         {
-            x = x0;
+            X = x0;
             y0 = y0 + 8;
         }
-        y = y0;
-    }
-}
-
-// 显示字符串
-// x,y:起点坐标
-// size1:字体大小
-//*chr:字符串起始地址
-// mode:0,反色显示;1,正常显示
-void OLED_ShowString(u16 x, u16 y, u8 *chr, u16 size1, u16 color)
-{
-    while (*chr != '\0') // 判断是不是非法字符!
-    {
-
-        OLED_ShowChar(x, y, *chr, size1, color);
-        chr++;
-        x += size1 / 2;
+        Y = y0;
     }
 }
 
@@ -536,116 +524,201 @@ u32 OLED_Pow(u16 m, u16 n)
     return result;
 }
 
-// 显示数字
-// x,y :起点坐标
-// num :要显示的数字
-// len :数字的位数
-// size:字体大小
-// mode:0,反色显示;1,正常显示
-void OLED_ShowNum(u16 x, u16 y, u32 num, u16 len, u16 size1, u16 color)
+/**
+ * @brief 显示数字
+ * @param X 数字显示的起始X坐标
+ * @param Y 数字显示的起始Y坐标
+ * @param Num 要显示的数字
+ * @param Len 数字的位数
+ * @param Size 字体大小
+ * @param Color 显示颜色
+ */
+void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color)
 {
     u8 t, temp, m = 0;
-    if (size1 == 8)
+    if (Size == 8)
         m = 2;
-    for (t = 0; t < len; t++)
+    for (t = 0; t < Len; t++)
     {
-        temp = (num / OLED_Pow(10, len - t - 1)) % 10;
+        temp = (Num / OLED_Pow(10, Len - t - 1)) % 10;
         if (temp == 0)
         {
-            OLED_ShowChar(x + (size1 / 2 + m) * t, y, '0', size1, color);
+            OLED_ShowChar(X + (Size / 2 + m) * t, Y, '0', Size, Color);
         }
         else
         {
-            OLED_ShowChar(x + (size1 / 2 + m) * t, y, temp + '0', size1, color);
+            OLED_ShowChar(X + (Size / 2 + m) * t, Y, temp + '0', Size, Color);
         }
     }
 }
 
-// 显示汉字
-// x,y:起点坐标
-// num:汉字对应的序号
-// mode:0,反色显示;1,正常显示
-void OLED_ShowChinese(u16 x, u16 y, u16 num, u16 size1, u16 color)
-{
-    x += 80;
-    y *= 16;
-    u16 m, temp;
-    u16 x0, y0;
-    u16 i, size3 = (size1 / 8 + ((size1 % 8) ? 1 : 0)) * size1; // 得到字体一个字符对应点阵集所占的字节数
-    x += 1, y += 1, x0 = x, y0 = y;
-    for (i = 0; i < size3; i++)
-    {
-        if (size1 == 16)
-        {
-            temp = Hzk1[num][i];
-        } // 调用16*16字体
-        else if (size1 == 24)
-        {
-            temp = Hzk2[num][i];
-        } // 调用24*24字体
-        else if (size1 == 32)
-        {
-            temp = Hzk3[num][i];
-        } // 调用32*32字体
-        else if (size1 == 64)
-        {
-            temp = Hzk4[num][i];
-        } // 调用64*64字体
-        else
-            return;
-        for (m = 0; m < 8; m++)
-        {
-            if (temp & 0x01)
-                OLED_DrawPoint(x, y, color);
-            else
-                OLED_DrawPoint(x, y, !color);
-            temp >>= 1;
-            y++;
-        }
-        x++;
-        if ((x - x0) == size1)
-        {
-            x = x0;
-            y0 = y0 + 8;
-        }
-        y = y0;
-    }
-}
-// 显示图片
-//  x,y:起点坐标
-//  sizex：图片宽度
-//  sizey:图片长度
-//  BMP：图片数组
-//  mode:图片显示的颜色
-void OLED_ShowPicture(u16 x, u16 y, u16 sizex, u16 sizey, const u8 BMP[], u16 Color)
+/**
+ * @brief 显示图片
+ * @param X 图片显示的起始X坐标
+ * @param Y 图片显示的起始Y坐标
+ * @param Sizex 图片宽度
+ * @param Sizey 图片长度
+ * @param Image 图片数组
+ * @param Color 图片显示的颜色
+ */
+void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Color)
 {
     u16 j = 0;
     u16 i, n, temp, m;
     u16 x0, y0;
-    x += 1, y += 1, x0 = x, y0 = y;
-    sizey = sizey / 8 + ((sizey % 8) ? 1 : 0);
-    for (n = 0; n < sizey; n++)
+    X += 1, Y += 1, x0 = X, y0 = Y;
+    Sizey = Sizey / 8 + ((Sizey % 8) ? 1 : 0);
+    for (n = 0; n < Sizey; n++)
     {
-        for (i = 0; i < sizex; i++)
+        for (i = 0; i < Sizex; i++)
         {
-            temp = BMP[j];
+            temp = Image[j];
             j++;
             for (m = 0; m < 8; m++)
             {
                 if (temp & 0x01)
-                    OLED_DrawPoint(x, y, !Color);
+                    OLED_DrawPoint(X, Y, Color);
                 else
-                    OLED_DrawPoint(x, y, Color);
+                    OLED_DrawPoint(X, Y, !Color);
                 temp >>= 1;
-                y++;
+                Y++;
             }
-            x++;
-            if ((x - x0) == sizex)
+            X++;
+            if ((X - x0) == Sizex)
             {
-                x = x0;
+                X = x0;
                 y0 = y0 + 8;
             }
-            y = y0;
+            Y = y0;
         }
     }
+}
+
+/**
+ * @brief 显示汉字单字
+ * @param X 汉字显示的起始X坐标
+ * @param Y 汉字显示的起始Y坐标
+ * @param Hanzi 要显示的汉字，范围：字库字符
+ * @param Size 汉字的字体大小
+ * @param Color 显示颜色
+ */
+void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单字打印;
+{
+    u8 pIndex;
+    if (Size == OLED_8X16)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+        /*将汉字字模库OLED_Hanzi16x16的指定数据以16*16的图像格式显示*/
+        OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
+    }
+    else if (Size == OLED_6X12)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+        /*将汉字字模库OLED_Hanzi12x12的指定数据以12*12的图像格式显示*/
+        OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
+    }
+}
+
+/**
+ * @brief 显示字符串
+ * @param X 字符串显示的起始X坐标
+ * @param Y 字符串显示的起始Y坐标
+ * @param String 要显示的字符串，范围：字库字符组成的字符串
+ * @param Size 字符串的字体大小
+ * @param Color 显示颜色
+ */
+void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文打印;
+{
+    u8 i = 0, Len = 0, height = 0, width = 0;
+    height = Size;
+    switch (Size)
+    {
+    case OLED_6X8:
+        width = 6;
+        break;
+    case OLED_6X12:
+        width = 6;
+        break;
+    case OLED_8X16:
+        width = 8;
+        break;
+    case OLED_12X24:
+        width = 12;
+        break;
+    default:
+        width = 6;
+        break;
+    }
+
+    while (String[i] != '\0') // 遍历字符串的每个字符
+    {
+        if (String[i] == '\n')
+        {
+            Y += height;
+            Len = 0;
+            i++;
+        } // 兼容换行符
+        if ((X + (Len + 1) * width) > Paint.Height)
+        {
+            Y += height;
+            Len = 0;
+        } // 超出屏幕自动换行
+        if ((int8_t)Y > Paint.Width)
+        {
+            return;
+        }
+
+        if (String[i] > '~') // 如果不属于英文字符
+        {
+            u8 SingleChinese[4] = {0};
+            SingleChinese[0] = String[i];
+            i++;
+            SingleChinese[1] = String[i];
+            i++;
+            SingleChinese[2] = String[i];
+            OLED_ShowChinese(X + Len * width, Y, SingleChinese, Size, Color);
+            i++;
+            Len += 2;
+        }
+        else /*调用OLED_ShowChar函数，依次显示每个字符*/
+        {
+            OLED_ShowChar(X + Len * width, Y, String[i], Size, Color);
+            i++;
+            Len++;
+        }
+    }
+}
+
+/**
+ * @brief 使用printf函数打印格式化字符串
+ * @param X 格式化字符串显示的起始X坐标
+ * @param Y 格式化字符串显示的起始Y坐标
+ * @param Width 字符串显示区域的宽度
+ * @param Height 字符串显示区域的高度
+ * @param Size 指定字体大小
+ * @param format 指定要显示的格式化字符串，范围：ASCII码可见字符组成的字符串
+ * @param ... 格式化字符串参数列表
+ */
+void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...)
+{
+    u8 String[50];                              // 定义字符数组
+    va_list arg;                                // 定义可变参数列表数据类型的变量arg
+    va_start(arg, format);                      // 从format开始，接收参数列表到arg变量
+    vsprintf((char *)String, format, arg);      // 使用vsprintf打印格式化字符串和参数列表到字符数组中
+    va_end(arg);                                // 结束变量arg
+    OLED_ShowString(X, Y, String, Size, Color); // OLED显示字符数组（字符串）并返回字符串
 }
