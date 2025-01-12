@@ -27,9 +27,9 @@
 
 int8_t Alarm_Choose_Flag = 0;
 int16_t Time_Choose_Flag = 0;
-int8_t TIME_Judge[7] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // īؖʱɕՂלŪ
+int8_t TIME_Judge;
 uint8_t Alarm_Set_Judge[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-int8_t Alarm_Date_Judge[2] = {0xFF, 0xFF};
+uint8_t *PWM_Time;
 
 uint8_t KeyNum;
 uint8_t CmdNum;
@@ -1119,7 +1119,7 @@ int main()
 	// IPH = 0x04;
 	Refresh_Flag = 1;
 	// Music_CMD(0, Music_Volume, Volume);
-	Paint_NewImage(Image_BW, OLED_W, OLED_H, ROTATE_180, WHITE);
+	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
 
 	Debug_printf("Init OK\r\n");
@@ -1134,17 +1134,13 @@ int main()
 	// 		OLED_Display(Image_BW, Part);
 	// 	}
 
-	OLED_ShowChinese(270, 50, "编", OLED_8X16, BLACK);
-	OLED_ShowString(0, 80, "编编编123abc编编编s65165165v", OLED_8X16, BLACK);
-	OLED_Printf(0, 100, OLED_8X16, BLACK, "编编编%d", 523);
-	//OLED_ShowImage(0, 0, OLED_H, OLED_W, Image_1, BLACK); // 显示图片
+	// OLED_ShowChinese(270, 50, "音", OLED_8X16, BLACK);
+	// OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK); // 显示图片
 
-	OLED_Display(Image_BW, Part);
-
-	while (1)
-	{
-		/* code */
-	}
+	// while (1)
+	// {
+	// 	/* code */
+	// }
 
 	while (1)
 	{
@@ -1168,159 +1164,55 @@ int main()
 		if (Refresh_Flag)
 		{
 			SHT30_GetData();
-		}
-
-		OLED_ShowNum(0, 0, (uint8_t)SHT.Temp, 2, 16, BLACK);
-		if (Refresh_Flag)
-			OLED_ShowChar(16, 0, '.', 16, BLACK);
-		OLED_ShowNum(24, 0, (uint8_t)(SHT.Temp * 10.0) % 10, 1, 16, BLACK);
-		OLED_ShowChinese(32, 0, "℃", 16, BLACK);
-
-		OLED_ShowNum(52, 0, (uint8_t)SHT.Hum, 2, 16, BLACK);
-		if (Refresh_Flag)
-			OLED_ShowChar(68, 0, '%', 16, BLACK);
-
-		// OLED_ShowNum(80, 0, lx, 5, 16,BLACK);
-
-		// if (Refresh_Flag)
-		// {
-		// 	OLED_ShowChar(120, 0, 'l', 8,BLACK);
-		// 	OLED_ShowChar(120, 1, 'x', 8,BLACK);
-		// }
-
-		// īؖʱɕՂלŪ
-		if (TIME_Judge[6] != Time_Year || Refresh_Flag)
-		{
-			OLED_ShowNum(0, 2 * 16, Time_Year, 2, 16, BLACK);
-			TIME_Judge[6] = Time_Year;
-		}
-		if (Refresh_Flag)
-			OLED_ShowChinese(16, 2 * 16, "年", 16, BLACK); // Ū
-
-		if (TIME_Judge[4] != Time_Mon || Refresh_Flag)
-		{
-			OLED_ShowNum(32, 2 * 16, Time_Mon, 2, 16, BLACK);
-			TIME_Judge[4] = Time_Mon;
-		}
-		if (Refresh_Flag)
-			OLED_ShowChinese(48, 2 * 16, "月", 16, BLACK); // Ղ
-
-		if (TIME_Judge[3] != Time_Day || Refresh_Flag)
-		{
-			OLED_ShowNum(64, 2 * 16, Time_Day, 2, 16, BLACK);
-			TIME_Judge[3] = Time_Day;
-		}
-		if (Refresh_Flag)
-			OLED_ShowChinese(80, 2 * 16, 0, 16, BLACK); // ɕ
-
-		if (Refresh_Flag)
-			OLED_ShowChinese(96, 2 * 16, "周", 16, BLACK); // ל
-
-		if (TIME_Judge[5] != Time_Week || Refresh_Flag)
-		{
-			// OLED_ShowChinese(112, 2*16, Time_Week, 16, BLACK);
-			TIME_Judge[5] = Time_Week;
-		}
-
-		if (TIME_Judge[2] != Time_Hour || Refresh_Flag)
-		{
-			// OLED_ShowChinese(16, 4*16, Time_Hour / 10 + 10, 16, BLACK);
-			// OLED_ShowChinese(32, 4*16, Time_Hour % 10 + 10, 16, BLACK); // ʱ
-			TIME_Judge[2] = Time_Hour;
-		}
-
-		if (Refresh_Flag)
-			OLED_ShowChinese(48, 4 * 16, ":", 16, BLACK);
-
-		if (TIME_Judge[1] != Time_Min || Refresh_Flag)
-		{
-			// OLED_ShowChinese(64, 4*16, Time_Min / 10 + 10, 16, BLACK);
-			// OLED_ShowChinese(80, 4*16, Time_Min % 10 + 10, 16, BLACK); // ؖ
-		}
-
-		// if (TIME_Judge[0] != Time_Sec || Refresh_Flag)
-		// {
-		// 	OLED_ShowNum(98, 5, Time_Sec / 10, 1, 8, BLACK); // ī
-		// 	OLED_ShowNum(106, 5, Time_Sec % 10, 1, 8, BLACK);
-		// 	TIME_Judge[0] = Time_Sec;
-		// }
-
-		if (Refresh_Flag)
-			if (Alarm_Enable)
-				OLED_ShowChinese(0, 6, "■", 16, BLACK); // ŖדҪ־
-
-		if (Alarm_Date_Judge[0] != Alarm_Date[0] || Refresh_Flag)
-		{
-			if (Alarm_Date[0] / 10)
-				OLED_ShowNum(16, 6, Alarm_Date[0] / 10, 1, 16, BLACK); // Ŗד
-			OLED_ShowNum(24, 6, Alarm_Date[0], 1, 16, BLACK);
-			Alarm_Date_Judge[0] = Alarm_Date[0];
-		}
-
-		if (Refresh_Flag)
-			OLED_ShowChar(32, 6, ':', 16, BLACK);
-
-		if (Alarm_Date_Judge[1] != Alarm_Date[1] || Refresh_Flag)
-		{
-			OLED_ShowNum(40, 6, Alarm_Date[1] / 10, 1, 16, BLACK);
-			OLED_ShowNum(48, 6, Alarm_Date[1] % 10, 1, 16, BLACK);
-			Alarm_Date_Judge[1] = Alarm_Date[1];
-		}
-
-		if (Alarm_Set_Judge[1] != Alarm_Set[1] || Refresh_Flag)
-		{
+			switch (PWM_Mod)
+			{
+			case 0:
+				PWM_Time = "5";
+				break;
+			case 1:
+				PWM_Time = "10";
+				break;
+			case 2:
+				PWM_Time = "15";
+				break;
+			case 3:
+				PWM_Time = "20";
+				break;
+			case 4:
+				PWM_Time = "30";
+				break;
+			case 5:
+				PWM_Time = "40";
+				break;
+			case 6:
+				PWM_Time = "60";
+				break;
+			case 7:
+				PWM_Time = "AT";
+				break;
+			} // 5,10,15,20,30,40,60
+			OLED_Printf(10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
+			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
+			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
+			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周日", Time_Year, Time_Mon, Time_Day);
+			OLED_Printf(16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin 音", SHT.Temp, SHT.Hum, Alarm_Enable ? "铃" : " ", Alarm_Date[0], Alarm_Date[1], PWM_Time);
+			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
+			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
+			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
 			if (Alarm_Set[1])
-				OLED_ShowNum(64, 7, 1, 1, 8, BLACK);
-			Alarm_Set_Judge[1] = Alarm_Set[1];
-		}
-
-		if (Alarm_Set_Judge[2] != Alarm_Set[2] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一");
 			if (Alarm_Set[2])
-				OLED_ShowNum(72, 7, 2 * 16, 1, 8, BLACK);
-			Alarm_Set_Judge[2] = Alarm_Set[2];
-		}
-
-		if (Alarm_Set_Judge[3] != Alarm_Set[3] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二");
 			if (Alarm_Set[3])
-				OLED_ShowNum(80, 7, 3, 1, 8, BLACK);
-			Alarm_Set_Judge[3] = Alarm_Set[3];
-		}
-
-		if (Alarm_Set_Judge[4] != Alarm_Set[4] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三");
 			if (Alarm_Set[4])
-				OLED_ShowNum(88, 7, 4, 1, 8, BLACK);
-			Alarm_Set_Judge[4] = Alarm_Set[4];
-		}
-
-		if (Alarm_Set_Judge[5] != Alarm_Set[5] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四");
 			if (Alarm_Set[5])
-				OLED_ShowNum(96, 7, 5, 1, 8, BLACK);
-			Alarm_Set_Judge[5] = Alarm_Set[5];
-		}
-
-		if (Alarm_Set_Judge[1] != Alarm_Set[1] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五");
 			if (Alarm_Set[6])
-				OLED_ShowNum(104, 7, 6, 1, 8, BLACK);
-			Alarm_Set_Judge[1] = Alarm_Set[1];
-		}
-
-		if (Alarm_Set_Judge[1] != Alarm_Set[1] || Refresh_Flag)
-		{
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六");
 			if (Alarm_Set[7])
-				OLED_ShowNum(112, 7, 7, 1, 8, BLACK);
-			Alarm_Set_Judge[1] = Alarm_Set[1];
-		}
-
-		if (Alarm_Set_Judge[0] != Alarm_Set[0] || Refresh_Flag)
-		{
-			if (Alarm_Set[0])
-				OLED_ShowChar(120, 6, '~' + 1, 16, BLACK);
-			Alarm_Set_Judge[0] = Alarm_Set[0];
+				OLED_Printf(LINE_END + 6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日");
 		}
 
 		if (Refresh_Flag)
@@ -1330,10 +1222,10 @@ int main()
 		}
 		Refresh_Flag = 0;
 
-		if (TIME_Judge[1] != Time_Min)
+		if (TIME_Judge != Time_Min)
 		{
 			Refresh_Flag = 1;
-			TIME_Judge[1] = Time_Min;
+			TIME_Judge = Time_Min;
 		}
 
 		KeyNum = Key_GetNumber();

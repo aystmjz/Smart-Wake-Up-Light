@@ -469,29 +469,38 @@ void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
     u16 i, m, temp, Size2, Char1;
     u16 x0, y0;
     X += 1, Y += 1, x0 = X, y0 = Y;
-    if (Size == 8)
+    if (Size == OLED_6X8)
         Size2 = 6;
     else
         Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) * (Size / 2); // 得到字体一个字符对应点阵集所占的字节数
-    Char1 = Char - ' ';                                         // 计算偏移后的值
+
+    if (Size == OLED_52X104)
+        Char1 = Char - '0'; // 从0开始
+    else
+        Char1 = Char - ' '; // 计算偏移后的值
+
     for (i = 0; i < Size2; i++)
     {
-        if (Size == 8)
+        if (Size == OLED_6X8)
         {
             temp = OLED_ASCII0806[Char1][i];
         } // 调用0806字体
-        else if (Size == 12)
+        else if (Size == OLED_6X12)
         {
             temp = OLED_ASCII1206[Char1][i];
         } // 调用1206字体
-        else if (Size == 16)
+        else if (Size == OLED_8X16)
         {
             temp = OLED_ASCII1608[Char1][i];
         } // 调用1608字体
-        else if (Size == 24)
+        else if (Size == OLED_12X24)
         {
             temp = OLED_ASCII2412[Char1][i];
         } // 调用2412字体
+        else if (Size == OLED_52X104)
+        {
+            temp = OLED_ASCII10452[Char1][i];
+        }
         else
             return;
         for (m = 0; m < 8; m++)
@@ -645,24 +654,10 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文打印
 {
     u8 i = 0, Len = 0, height = 0, width = 0;
     height = Size;
-    switch (Size)
-    {
-    case OLED_6X8:
+    if (Size == OLED_6X8)
         width = 6;
-        break;
-    case OLED_6X12:
-        width = 6;
-        break;
-    case OLED_8X16:
-        width = 8;
-        break;
-    case OLED_12X24:
-        width = 12;
-        break;
-    default:
-        width = 6;
-        break;
-    }
+    else
+        width = Size / 2;
 
     while (String[i] != '\0') // 遍历字符串的每个字符
     {

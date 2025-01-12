@@ -29,8 +29,10 @@
 
 #define OLED_BUSY() GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)
 
-#define OLED_W 128
-#define OLED_H 296
+#define OLED_W 296
+#define OLED_H 128
+
+#define LINE_END 256
 
 typedef struct
 {
@@ -52,6 +54,7 @@ extern u8 Image_BW[OLED_W * OLED_H / 8];
 #define OLED_6X12 12
 #define OLED_8X16 16
 #define OLED_12X24 24
+#define OLED_52X104 104
 
 #define ROTATE_0 0     // 屏幕正向显示
 #define ROTATE_90 90   // 屏幕旋转90度显示
