@@ -2,7 +2,7 @@
 
 u8 Image_BW[OLED_W * OLED_H / 8];
 
-// ³õÊ¼»¯GPIO
+// åˆå§‹åŒ–GPIO
 void OLED_Init(void)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
@@ -34,7 +34,7 @@ void OLED_Init(void)
     Epaper_READBUSY();
 }
 
-// Ä£ÄâSPIÊ±Ğò
+// æ¨¡æ‹ŸSPIæ—¶åº
 void OLED_WR_Bus(u8 dat)
 {
     u8 i;
@@ -56,7 +56,7 @@ void OLED_WR_Bus(u8 dat)
     OLED_CS_Set();
 }
 
-// Ğ´ÈëÒ»¸öÃüÁî
+// å†™å…¥ä¸€ä¸ªå‘½ä»¤
 void OLED_WR_REG(u8 reg)
 {
     OLED_DC_Clr();
@@ -64,7 +64,7 @@ void OLED_WR_REG(u8 reg)
     OLED_DC_Set();
 }
 
-// Ğ´ÈëÒ»¸ö×Ö½Ú
+// å†™å…¥ä¸€ä¸ªå­—èŠ‚
 void OLED_WR_DATA8(u8 dat)
 {
     OLED_WR_Bus(dat);
@@ -83,7 +83,7 @@ void Epaper_READBUSY()
     }
 }
 
-void EPD_Update(void) // È«Ë¢
+void EPD_Update(void) // å…¨åˆ·
 {
     OLED_WR_REG(0x22);
     OLED_WR_DATA8(0xF7);
@@ -91,7 +91,7 @@ void EPD_Update(void) // È«Ë¢
     Epaper_READBUSY();
 }
 
-void EPD_Update_Fast(void) // ¿ìË¢
+void EPD_Update_Fast(void) // å¿«åˆ·
 {
     OLED_WR_REG(0x22);
     OLED_WR_DATA8(0xC7);
@@ -99,7 +99,7 @@ void EPD_Update_Fast(void) // ¿ìË¢
     Epaper_READBUSY();
 }
 
-void EPD_Update_Partial(void) // ¾ÖË¢
+void EPD_Update_Partial(void) // å±€åˆ·
 {
     OLED_WR_REG(0x22);
     OLED_WR_DATA8(0xFF);
@@ -107,7 +107,7 @@ void EPD_Update_Partial(void) // ¾ÖË¢
     Epaper_READBUSY();
 }
 
-// ³õÊ¼»¯ÆÁÄ»
+// åˆå§‹åŒ–å±å¹•
 void OLED_GUIInit(void)
 {
     // OLED_RES_Clr(); // Module reset
@@ -155,7 +155,7 @@ void OLED_GUIInit(void)
     Epaper_READBUSY();
 }
 
-// È«Ë¢µ½ÏÔ´æ
+// å…¨åˆ·åˆ°æ˜¾å­˜
 void OLED_Display(u8 *Image, u8 Mode)
 {
     LED_ON();
@@ -184,7 +184,7 @@ void OLED_Display(u8 *Image, u8 Mode)
     LED_OFF();
 }
 
-// ÓÃ¾ÖË¢µÄ·½Ê½Ë¢ĞÂÈ«ÆÁ
+// ç”¨å±€åˆ·çš„æ–¹å¼åˆ·æ–°å…¨å±
 void EPD_Dis_PartAll(u8 *Image)
 {
     unsigned int Width, Height, i, j;
@@ -200,7 +200,7 @@ void EPD_Dis_PartAll(u8 *Image)
     OLED_WR_REG(0x3C);
     OLED_WR_DATA8(0x80);
 
-    // Ò»¶¨ÒªÖØĞÂÉèÖÃ´°¿ÚÓë×ø±ê£¡
+    // ä¸€å®šè¦é‡æ–°è®¾ç½®çª—å£ä¸åæ ‡ï¼
     OLED_WR_REG(0x44);
     OLED_WR_DATA8(0x00);
     OLED_WR_DATA8(0x0F);
@@ -229,7 +229,7 @@ void EPD_Dis_PartAll(u8 *Image)
     EPD_Update_Partial();
 }
 
-// ÇåÆÁ°×É«
+// æ¸…å±ç™½è‰²
 void EPD_WhiteScreen_White(void)
 {
     OLED_GUIInit();
@@ -244,7 +244,7 @@ void EPD_WhiteScreen_White(void)
     OLED_Display(Image_BW, Part);
 }
 
-// Éî¶ÈË¯Ãß
+// æ·±åº¦ç¡çœ 
 void EPD_DeepSleep(void)
 {
     OLED_WR_REG(0x10); // enter deep sleep
@@ -312,13 +312,13 @@ void Paint_SetPixel(u16 Xpoint, u16 Ypoint, u16 Color)
     Rdata = Paint.Image[Addr];
     if (Color == BLACK)
     {
-        Paint.Image[Addr] = Rdata & ~(0x80 >> (X % 8)); // ½«¶ÔÓ¦Êı¾İÎ»ÖÃ0
+        Paint.Image[Addr] = Rdata & ~(0x80 >> (X % 8)); // å°†å¯¹åº”æ•°æ®ä½ç½®0
     }
     else
-        Paint.Image[Addr] = Rdata | (0x80 >> (X % 8)); // ½«¶ÔÓ¦Êı¾İÎ»ÖÃ1
+        Paint.Image[Addr] = Rdata | (0x80 >> (X % 8)); // å°†å¯¹åº”æ•°æ®ä½ç½®1
 }
 
-// ÇåÆÁº¯Êı
+// æ¸…å±å‡½æ•°
 void OLED_Clear(u16 Color)
 {
     u16 X, Y;
@@ -333,13 +333,13 @@ void OLED_Clear(u16 Color)
     }
 }
 
-// »­µãº¯Êı
+// ç”»ç‚¹å‡½æ•°
 void OLED_DrawPoint(u16 Xpoint, u16 Ypoint, u16 Color)
 {
     Paint_SetPixel(Xpoint - 1, Ypoint - 1, Color);
 }
 
-// »­Ö±Ïß
+// ç”»ç›´çº¿
 void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color)
 {
     u16 Xpoint, Ypoint;
@@ -379,7 +379,7 @@ void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color)
     }
 }
 
-// »­¾ØĞÎ
+// ç”»çŸ©å½¢
 void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u8 mode)
 {
     u16 i;
@@ -399,7 +399,7 @@ void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u
     }
 }
 
-// »­Ô²ĞÎ
+// ç”»åœ†å½¢
 void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode)
 {
     u16 Esp, sCountY;
@@ -457,12 +457,12 @@ void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode)
 }
 
 /**
- * @brief ÏÔÊ¾×Ö·û
- * @param X ×Ö·ûÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y ×Ö·ûÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param Char ÒªÏÔÊ¾µÄ×Ö·û
- * @param Size ×ÖÌå´óĞ¡
- * @param Color ÏÔÊ¾ÑÕÉ«
+ * @brief æ˜¾ç¤ºå­—ç¬¦
+ * @param X å­—ç¬¦æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y å­—ç¬¦æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param Char è¦æ˜¾ç¤ºçš„å­—ç¬¦
+ * @param Size å­—ä½“å¤§å°
+ * @param Color æ˜¾ç¤ºé¢œè‰²
  */
 void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
 {
@@ -472,31 +472,31 @@ void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
     if (Size == OLED_6X8)
         Size2 = 6;
     else
-        Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) * (Size / 2); // µÃµ½×ÖÌåÒ»¸ö×Ö·û¶ÔÓ¦µãÕó¼¯ËùÕ¼µÄ×Ö½ÚÊı
+        Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) * (Size / 2); // å¾—åˆ°å­—ä½“ä¸€ä¸ªå­—ç¬¦å¯¹åº”ç‚¹é˜µé›†æ‰€å çš„å­—èŠ‚æ•°
 
     if (Size == OLED_52X104)
-        Char1 = Char - '0'; // ´Ó0¿ªÊ¼
+        Char1 = Char - '0'; // ä»0å¼€å§‹
     else
-        Char1 = Char - ' '; // ¼ÆËãÆ«ÒÆºóµÄÖµ
+        Char1 = Char - ' '; // è®¡ç®—åç§»åçš„å€¼
 
     for (i = 0; i < Size2; i++)
     {
         if (Size == OLED_6X8)
         {
             temp = OLED_ASCII0806[Char1][i];
-        } // µ÷ÓÃ0806×ÖÌå
+        } // è°ƒç”¨0806å­—ä½“
         else if (Size == OLED_6X12)
         {
             temp = OLED_ASCII1206[Char1][i];
-        } // µ÷ÓÃ1206×ÖÌå
+        } // è°ƒç”¨1206å­—ä½“
         else if (Size == OLED_8X16)
         {
             temp = OLED_ASCII1608[Char1][i];
-        } // µ÷ÓÃ1608×ÖÌå
+        } // è°ƒç”¨1608å­—ä½“
         else if (Size == OLED_12X24)
         {
             temp = OLED_ASCII2412[Char1][i];
-        } // µ÷ÓÃ2412×ÖÌå
+        } // è°ƒç”¨2412å­—ä½“
         else if (Size == OLED_52X104)
         {
             temp = OLED_ASCII10452[Char1][i];
@@ -534,13 +534,13 @@ u32 OLED_Pow(u16 m, u16 n)
 }
 
 /**
- * @brief ÏÔÊ¾Êı×Ö
- * @param X Êı×ÖÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y Êı×ÖÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param Num ÒªÏÔÊ¾µÄÊı×Ö
- * @param Len Êı×ÖµÄÎ»Êı
- * @param Size ×ÖÌå´óĞ¡
- * @param Color ÏÔÊ¾ÑÕÉ«
+ * @brief æ˜¾ç¤ºæ•°å­—
+ * @param X æ•°å­—æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y æ•°å­—æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param Num è¦æ˜¾ç¤ºçš„æ•°å­—
+ * @param Len æ•°å­—çš„ä½æ•°
+ * @param Size å­—ä½“å¤§å°
+ * @param Color æ˜¾ç¤ºé¢œè‰²
  */
 void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color)
 {
@@ -562,13 +562,13 @@ void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color)
 }
 
 /**
- * @brief ÏÔÊ¾Í¼Æ¬
- * @param X Í¼Æ¬ÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y Í¼Æ¬ÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param Sizex Í¼Æ¬¿í¶È
- * @param Sizey Í¼Æ¬³¤¶È
- * @param Image Í¼Æ¬Êı×é
- * @param Color Í¼Æ¬ÏÔÊ¾µÄÑÕÉ«
+ * @brief æ˜¾ç¤ºå›¾ç‰‡
+ * @param X å›¾ç‰‡æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y å›¾ç‰‡æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param Sizex å›¾ç‰‡å®½åº¦
+ * @param Sizey å›¾ç‰‡é•¿åº¦
+ * @param Image å›¾ç‰‡æ•°ç»„
+ * @param Color å›¾ç‰‡æ˜¾ç¤ºçš„é¢œè‰²
  */
 void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Color)
 {
@@ -604,53 +604,53 @@ void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Col
 }
 
 /**
- * @brief ÏÔÊ¾ºº×Öµ¥×Ö
- * @param X ºº×ÖÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y ºº×ÖÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param Hanzi ÒªÏÔÊ¾µÄºº×Ö£¬·¶Î§£º×Ö¿â×Ö·û
- * @param Size ºº×ÖµÄ×ÖÌå´óĞ¡
- * @param Color ÏÔÊ¾ÑÕÉ«
+ * @brief æ˜¾ç¤ºæ±‰å­—å•å­—
+ * @param X æ±‰å­—æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y æ±‰å­—æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param Hanzi è¦æ˜¾ç¤ºçš„æ±‰å­—ï¼ŒèŒƒå›´ï¼šå­—åº“å­—ç¬¦
+ * @param Size æ±‰å­—çš„å­—ä½“å¤§å°
+ * @param Color æ˜¾ç¤ºé¢œè‰²
  */
-void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // ºº×Öµ¥×Ö´òÓ¡;
+void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // æ±‰å­—å•å­—æ‰“å°;
 {
     u8 pIndex;
     if (Size == OLED_8X16)
     {
         for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
         {
-            /*ÕÒµ½Æ¥ÅäµÄºº×Ö*/
+            /*æ‰¾åˆ°åŒ¹é…çš„æ±‰å­—*/
             if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
             {
-                break; // Ìø³öÑ­»·£¬´ËÊ±pIndexµÄÖµÎªÖ¸¶¨ºº×ÖµÄË÷Òı
+                break; // è·³å‡ºå¾ªç¯ï¼Œæ­¤æ—¶pIndexçš„å€¼ä¸ºæŒ‡å®šæ±‰å­—çš„ç´¢å¼•
             }
         }
-        /*½«ºº×Ö×ÖÄ£¿âOLED_Hanzi16x16µÄÖ¸¶¨Êı¾İÒÔ16*16µÄÍ¼Ïñ¸ñÊ½ÏÔÊ¾*/
+        /*å°†æ±‰å­—å­—æ¨¡åº“OLED_Hanzi16x16çš„æŒ‡å®šæ•°æ®ä»¥16*16çš„å›¾åƒæ ¼å¼æ˜¾ç¤º*/
         OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
     }
     else if (Size == OLED_6X12)
     {
         for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
         {
-            /*ÕÒµ½Æ¥ÅäµÄºº×Ö*/
+            /*æ‰¾åˆ°åŒ¹é…çš„æ±‰å­—*/
             if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
             {
-                break; // Ìø³öÑ­»·£¬´ËÊ±pIndexµÄÖµÎªÖ¸¶¨ºº×ÖµÄË÷Òı
+                break; // è·³å‡ºå¾ªç¯ï¼Œæ­¤æ—¶pIndexçš„å€¼ä¸ºæŒ‡å®šæ±‰å­—çš„ç´¢å¼•
             }
         }
-        /*½«ºº×Ö×ÖÄ£¿âOLED_Hanzi12x12µÄÖ¸¶¨Êı¾İÒÔ12*12µÄÍ¼Ïñ¸ñÊ½ÏÔÊ¾*/
+        /*å°†æ±‰å­—å­—æ¨¡åº“OLED_Hanzi12x12çš„æŒ‡å®šæ•°æ®ä»¥12*12çš„å›¾åƒæ ¼å¼æ˜¾ç¤º*/
         OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
     }
 }
 
 /**
- * @brief ÏÔÊ¾×Ö·û´®
- * @param X ×Ö·û´®ÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y ×Ö·û´®ÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param String ÒªÏÔÊ¾µÄ×Ö·û´®£¬·¶Î§£º×Ö¿â×Ö·û×é³ÉµÄ×Ö·û´®
- * @param Size ×Ö·û´®µÄ×ÖÌå´óĞ¡
- * @param Color ÏÔÊ¾ÑÕÉ«
+ * @brief æ˜¾ç¤ºå­—ç¬¦ä¸²
+ * @param X å­—ç¬¦ä¸²æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y å­—ç¬¦ä¸²æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param String è¦æ˜¾ç¤ºçš„å­—ç¬¦ä¸²ï¼ŒèŒƒå›´ï¼šå­—åº“å­—ç¬¦ç»„æˆçš„å­—ç¬¦ä¸²
+ * @param Size å­—ç¬¦ä¸²çš„å­—ä½“å¤§å°
+ * @param Color æ˜¾ç¤ºé¢œè‰²
  */
-void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // ÖĞÓ¢ÎÄ´òÓ¡;
+void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // ä¸­è‹±æ–‡æ‰“å°;
 {
     u8 i = 0, Len = 0, height = 0, width = 0;
     height = Size;
@@ -659,25 +659,25 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // ÖĞÓ¢ÎÄ´òÓ¡
     else
         width = Size / 2;
 
-    while (String[i] != '\0') // ±éÀú×Ö·û´®µÄÃ¿¸ö×Ö·û
+    while (String[i] != '\0') // éå†å­—ç¬¦ä¸²çš„æ¯ä¸ªå­—ç¬¦
     {
         if (String[i] == '\n')
         {
             Y += height;
             Len = 0;
             i++;
-        } // ¼æÈİ»»ĞĞ·û
+        } // å…¼å®¹æ¢è¡Œç¬¦
         if ((X + (Len + 1) * width) > Paint.Height)
         {
             Y += height;
             Len = 0;
-        } // ³¬³öÆÁÄ»×Ô¶¯»»ĞĞ
+        } // è¶…å‡ºå±å¹•è‡ªåŠ¨æ¢è¡Œ
         if ((int8_t)Y > Paint.Width)
         {
             return;
         }
 
-        if (String[i] > '~') // Èç¹û²»ÊôÓÚÓ¢ÎÄ×Ö·û
+        if (String[i] > '~') // å¦‚æœä¸å±äºè‹±æ–‡å­—ç¬¦
         {
             u8 SingleChinese[4] = {0};
             SingleChinese[0] = String[i];
@@ -689,7 +689,7 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // ÖĞÓ¢ÎÄ´òÓ¡
             i++;
             Len += 2;
         }
-        else /*µ÷ÓÃOLED_ShowCharº¯Êı£¬ÒÀ´ÎÏÔÊ¾Ã¿¸ö×Ö·û*/
+        else /*è°ƒç”¨OLED_ShowCharå‡½æ•°ï¼Œä¾æ¬¡æ˜¾ç¤ºæ¯ä¸ªå­—ç¬¦*/
         {
             OLED_ShowChar(X + Len * width, Y, String[i], Size, Color);
             i++;
@@ -699,21 +699,21 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // ÖĞÓ¢ÎÄ´òÓ¡
 }
 
 /**
- * @brief Ê¹ÓÃprintfº¯Êı´òÓ¡¸ñÊ½»¯×Ö·û´®
- * @param X ¸ñÊ½»¯×Ö·û´®ÏÔÊ¾µÄÆğÊ¼X×ø±ê
- * @param Y ¸ñÊ½»¯×Ö·û´®ÏÔÊ¾µÄÆğÊ¼Y×ø±ê
- * @param Width ×Ö·û´®ÏÔÊ¾ÇøÓòµÄ¿í¶È
- * @param Height ×Ö·û´®ÏÔÊ¾ÇøÓòµÄ¸ß¶È
- * @param Size Ö¸¶¨×ÖÌå´óĞ¡
- * @param format Ö¸¶¨ÒªÏÔÊ¾µÄ¸ñÊ½»¯×Ö·û´®£¬·¶Î§£ºASCIIÂë¿É¼û×Ö·û×é³ÉµÄ×Ö·û´®
- * @param ... ¸ñÊ½»¯×Ö·û´®²ÎÊıÁĞ±í
+ * @brief ä½¿ç”¨printfå‡½æ•°æ‰“å°æ ¼å¼åŒ–å­—ç¬¦ä¸²
+ * @param X æ ¼å¼åŒ–å­—ç¬¦ä¸²æ˜¾ç¤ºçš„èµ·å§‹Xåæ ‡
+ * @param Y æ ¼å¼åŒ–å­—ç¬¦ä¸²æ˜¾ç¤ºçš„èµ·å§‹Yåæ ‡
+ * @param Width å­—ç¬¦ä¸²æ˜¾ç¤ºåŒºåŸŸçš„å®½åº¦
+ * @param Height å­—ç¬¦ä¸²æ˜¾ç¤ºåŒºåŸŸçš„é«˜åº¦
+ * @param Size æŒ‡å®šå­—ä½“å¤§å°
+ * @param format æŒ‡å®šè¦æ˜¾ç¤ºçš„æ ¼å¼åŒ–å­—ç¬¦ä¸²ï¼ŒèŒƒå›´ï¼šASCIIç å¯è§å­—ç¬¦ç»„æˆçš„å­—ç¬¦ä¸²
+ * @param ... æ ¼å¼åŒ–å­—ç¬¦ä¸²å‚æ•°åˆ—è¡¨
  */
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...)
 {
-    u8 String[50];                              // ¶¨Òå×Ö·ûÊı×é
-    va_list arg;                                // ¶¨Òå¿É±ä²ÎÊıÁĞ±íÊı¾İÀàĞÍµÄ±äÁ¿arg
-    va_start(arg, format);                      // ´Óformat¿ªÊ¼£¬½ÓÊÕ²ÎÊıÁĞ±íµ½arg±äÁ¿
-    vsprintf((char *)String, format, arg);      // Ê¹ÓÃvsprintf´òÓ¡¸ñÊ½»¯×Ö·û´®ºÍ²ÎÊıÁĞ±íµ½×Ö·ûÊı×éÖĞ
-    va_end(arg);                                // ½áÊø±äÁ¿arg
-    OLED_ShowString(X, Y, String, Size, Color); // OLEDÏÔÊ¾×Ö·ûÊı×é£¨×Ö·û´®£©²¢·µ»Ø×Ö·û´®
+    u8 String[50];                              // å®šä¹‰å­—ç¬¦æ•°ç»„
+    va_list arg;                                // å®šä¹‰å¯å˜å‚æ•°åˆ—è¡¨æ•°æ®ç±»å‹çš„å˜é‡arg
+    va_start(arg, format);                      // ä»formatå¼€å§‹ï¼Œæ¥æ”¶å‚æ•°åˆ—è¡¨åˆ°argå˜é‡
+    vsprintf((char *)String, format, arg);      // ä½¿ç”¨vsprintfæ‰“å°æ ¼å¼åŒ–å­—ç¬¦ä¸²å’Œå‚æ•°åˆ—è¡¨åˆ°å­—ç¬¦æ•°ç»„ä¸­
+    va_end(arg);                                // ç»“æŸå˜é‡arg
+    OLED_ShowString(X, Y, String, Size, Color); // OLEDæ˜¾ç¤ºå­—ç¬¦æ•°ç»„ï¼ˆå­—ç¬¦ä¸²ï¼‰å¹¶è¿”å›å­—ç¬¦ä¸²
 }

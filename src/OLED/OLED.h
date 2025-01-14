@@ -10,7 +10,7 @@
 #include "LED.h"
 #include "OLED_Data.h"
 
-//-----------------OLED¶Ë¿Ú¶¨Òå----------------
+//-----------------OLEDç«¯å£å®šä¹‰----------------
 
 #define OLED_SCL_Clr() GPIO_ResetBits(GPIOA, GPIO_Pin_5) // SCL
 #define OLED_SCL_Set() GPIO_SetBits(GPIOA, GPIO_Pin_5)
@@ -56,42 +56,42 @@ extern u8 Image_BW[OLED_W * OLED_H / 8];
 #define OLED_12X24 24
 #define OLED_52X104 104
 
-#define ROTATE_0 0     // ÆÁÄ»ÕıÏòÏÔÊ¾
-#define ROTATE_90 90   // ÆÁÄ»Ğı×ª90¶ÈÏÔÊ¾
-#define ROTATE_180 180 // ÆÁÄ»Ğı×ª180¶ÈÏÔÊ¾
-#define ROTATE_270 270 // ÆÁÄ»Ğı×ª270¶ÈÏÔÊ¾
+#define ROTATE_0 0     // å±å¹•æ­£å‘æ˜¾ç¤º
+#define ROTATE_90 90   // å±å¹•æ—‹è½¬90åº¦æ˜¾ç¤º
+#define ROTATE_180 180 // å±å¹•æ—‹è½¬180åº¦æ˜¾ç¤º
+#define ROTATE_270 270 // å±å¹•æ—‹è½¬270åº¦æ˜¾ç¤º
 
-#define WHITE 0XFF // ÏÔÊ¾°×É«
-#define BLACK 0X00 // ÏÔÊ¾ºÚÉ«
+#define WHITE 0XFF // æ˜¾ç¤ºç™½è‰²
+#define BLACK 0X00 // æ˜¾ç¤ºé»‘è‰²
 
 #define All 1
 #define Part 0
 
-void OLED_WR_Bus(u8 dat);   // Ä£ÄâSPIÊ±Ğò
-void OLED_WR_REG(u8 reg);   // Ğ´ÈëÒ»¸öÃüÁî
-void OLED_WR_DATA8(u8 dat); // Ğ´ÈëÒ»¸ö×Ö½Ú
+void OLED_WR_Bus(u8 dat);   // æ¨¡æ‹ŸSPIæ—¶åº
+void OLED_WR_REG(u8 reg);   // å†™å…¥ä¸€ä¸ªå‘½ä»¤
+void OLED_WR_DATA8(u8 dat); // å†™å…¥ä¸€ä¸ªå­—èŠ‚
 
 void Epaper_READBUSY(void);
-void EPD_WhiteScreen_White(void); // ÇåÆÁ°×É«
-void EPD_Dis_PartAll(u8 *Image);  // ÓÃ¾ÖË¢µÄ·½Ê½Ë¢ĞÂÈ«ÆÁ
-void EPD_DeepSleep(void);         // Éî¶ÈË¯Ãß
+void EPD_WhiteScreen_White(void); // æ¸…å±ç™½è‰²
+void EPD_Dis_PartAll(u8 *Image);  // ç”¨å±€åˆ·çš„æ–¹å¼åˆ·æ–°å…¨å±
+void EPD_DeepSleep(void);         // æ·±åº¦ç¡çœ 
 void EPD_WeakUp(void);
 
-void Paint_NewImage(u8 *image, u16 Width, u16 Height, u16 Rotate, u16 Color);            // ´´½¨»­²¼¿ØÖÆÏÔÊ¾·½Ïò
-void OLED_Clear(u16 Color);                                                              // ÇåÆÁº¯Êı
-void OLED_DrawPoint(u16 Xpoint, u16 Ypoint, u16 Color);                                  // »­µã
-void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color);               // »­Ïß
-void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u8 mode); // »­¾ØĞÎ
-void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode);        // »­Ô²
+void Paint_NewImage(u8 *image, u16 Width, u16 Height, u16 Rotate, u16 Color);            // åˆ›å»ºç”»å¸ƒæ§åˆ¶æ˜¾ç¤ºæ–¹å‘
+void OLED_Clear(u16 Color);                                                              // æ¸…å±å‡½æ•°
+void OLED_DrawPoint(u16 Xpoint, u16 Ypoint, u16 Color);                                  // ç”»ç‚¹
+void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color);               // ç”»çº¿
+void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u8 mode); // ç”»çŸ©å½¢
+void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode);        // ç”»åœ†
 
-void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color);                       // ÏÔÊ¾×Ö·û
-void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color);               // ÏÔÊ¾Êı×Ö
-void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color);                  // ÏÔÊ¾ÖĞÎÄ
-void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color);                  // ÏÔÊ¾×Ö·û´®
-void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Color); // ÏÔÊ¾Í¼Æ¬
+void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color);                       // æ˜¾ç¤ºå­—ç¬¦
+void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color);               // æ˜¾ç¤ºæ•°å­—
+void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color);                  // æ˜¾ç¤ºä¸­æ–‡
+void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color);                  // æ˜¾ç¤ºå­—ç¬¦ä¸²
+void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Color); // æ˜¾ç¤ºå›¾ç‰‡
 
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...);
-void OLED_Display(u8 *Image, u8 Mode); // ¸üĞÂµ½ÆÁÄ»(¾ÖË¢/È«Ë¢)
+void OLED_Display(u8 *Image, u8 Mode); // æ›´æ–°åˆ°å±å¹•(å±€åˆ·/å…¨åˆ·)
 void OLED_Init(void);
 
 #endif
