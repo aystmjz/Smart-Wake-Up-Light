@@ -17,14 +17,14 @@
 #define PWM_MOD7 60
 #define PWM_MOD_TEST 0
 
-#define PWM_MOD1_STR " 5"
+#define PWM_MOD1_STR "5"
 #define PWM_MOD2_STR "10"
 #define PWM_MOD3_STR "15"
 #define PWM_MOD4_STR "20"
 #define PWM_MOD5_STR "30"
 #define PWM_MOD6_STR "40"
 #define PWM_MOD7_STR "60"
-#define PWM_MOD_TEST_STR " 0"
+#define PWM_MOD_TEST_STR "0"
 
 #define PWM_MOD1_CALC(sec) ((sec * sec) / 900 + 1)
 #define PWM_MOD2_CALC(sec) (((sec / 2) * (sec / 2)) / 900 + 1)

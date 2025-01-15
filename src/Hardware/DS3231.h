@@ -37,7 +37,6 @@ typedef struct
     uint8_t Enable;
     uint8_t Num;
     uint8_t Mod;
-    uint8_t WeekSet[7];
 } AlarmTypeDef;
 
 void DS3231_WriteByte(uint8_t WordAddress, uint8_t Data);
