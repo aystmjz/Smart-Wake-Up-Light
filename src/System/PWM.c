@@ -1,5 +1,4 @@
 #include "PWM.h"
-
 void PWM_Init(void)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
@@ -52,55 +51,128 @@ void PWM_Set(uint16_t Percent)
     TIM_SetCompare1(TIM1, Percent);
 }
 
-void PWM_Run(void)
+void PWM_Run(uint8_t *Mod)
 {
     time_t stamp_last, stamp;
     uint8_t KeyNum;
     uint16_t Timer_Sec;
-    stamp_last = DS3231_GetTimeStamp();
+    struct tm Time_Temp;
+    DS3231_ReadTime(&Time_Temp);
+    stamp_last = DS3231_GetTimeStamp(&Time_Temp);
     KeyNum = Key_GetNumber();
     PWM_Set(1);
     PWM_Enable();
     while (!KeyNum)
     {
         KeyNum = Key_GetNumber();
-        DS3231_ReadTime();
-        stamp = DS3231_GetTimeStamp();
+        DS3231_ReadTime(&Time_Temp);
+        stamp = DS3231_GetTimeStamp(&Time_Temp);
         Timer_Sec = stamp > stamp_last ? stamp - stamp_last : stamp_last - stamp;
-        switch (PWM_Mod)
+        switch (*Mod)
         {
-        case 0:
-            PWM_Set((Timer_Sec * Timer_Sec) / 900 + 1);
-            break;
         case 1:
-            PWM_Set(((Timer_Sec / 2) * (Timer_Sec / 2)) / 900 + 1);
+            PWM_Set(PWM_MOD1_CALC(Timer_Sec));
             break;
         case 2:
-            PWM_Set(((Timer_Sec / 3) * (Timer_Sec / 3)) / 900 + 1);
+            PWM_Set(PWM_MOD2_CALC(Timer_Sec));
             break;
         case 3:
-            PWM_Set(((Timer_Sec / 4) * (Timer_Sec / 4)) / 900 + 1);
+            PWM_Set(PWM_MOD3_CALC(Timer_Sec));
             break;
         case 4:
-            PWM_Set(((Timer_Sec / 6) * (Timer_Sec / 6)) / 900 + 1);
+            PWM_Set(PWM_MOD4_CALC(Timer_Sec));
             break;
         case 5:
-            PWM_Set(((Timer_Sec / 8) * (Timer_Sec / 8)) / 900 + 1);
+            PWM_Set(PWM_MOD5_CALC(Timer_Sec));
             break;
         case 6:
-            PWM_Set(((Timer_Sec / 12) * (Timer_Sec / 12)) / 900 + 1);
+            PWM_Set(PWM_MOD6_CALC(Timer_Sec));
             break;
         case 7:
-            // PWM_Set(Light_Date[PWM_Timer_Min + 1]);
+            PWM_Set(PWM_MOD7_CALC(Timer_Sec));
             break;
-        } // 5,10,15,20,30,40,60
+        default:
+            PWM_Set(PWM_MOD_TEST_CALC(Timer_Sec));
+            break;
+        }
 
         Delay_ms(1000);
-        if (Timer_Sec > 5 * 60 * 60)
+        if (Timer_Sec > PWM_EXIT_HOUR * 60 * 60)
         {
             PWM_Disable();
             return;
         }
     }
     PWM_Disable();
+}
+
+void PWM_AdjustAlarm(AlarmTypeDef *Alarm, uint8_t *Mod, int8_t Dir)
+{
+    uint16_t sum;
+    sum = Alarm->Hour * 60 + Alarm->Min;
+    switch (*Mod)
+    {
+    case 1:
+        Alarm->Hour = (sum + PWM_MOD1 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD1 * Dir) % 60;
+        break;
+    case 2:
+        Alarm->Hour = (sum + PWM_MOD2 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD2 * Dir) % 60;
+        break;
+    case 3:
+        Alarm->Hour = (sum + PWM_MOD3 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD3 * Dir) % 60;
+        break;
+    case 4:
+        Alarm->Hour = (sum + PWM_MOD4 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD4 * Dir) % 60;
+        break;
+    case 5:
+        Alarm->Hour = (sum + PWM_MOD5 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD5 * Dir) % 60;
+        break;
+    case 6:
+        Alarm->Hour = (sum + PWM_MOD6 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD6 * Dir) % 60;
+        break;
+    case 7:
+        Alarm->Hour = (sum + PWM_MOD7 * Dir) / 60;
+        Alarm->Min = (sum + PWM_MOD7 * Dir) % 60;
+        break;
+    default:
+        Alarm->Hour = sum / 60;
+        Alarm->Min = sum % 60;
+        break;
+    }
+}
+void PWM_Judge(uint8_t *Mod)
+{
+    if (*Mod < 1)
+        *Mod = PWM_NUM;
+    if (*Mod > PWM_NUM)
+        *Mod = 1;
+}
+
+char *Get_PWM_Str(uint8_t *Mod)
+{
+    switch (*Mod)
+    {
+    case 1:
+        return PWM_MOD1_STR;
+    case 2:
+        return PWM_MOD2_STR;
+    case 3:
+        return PWM_MOD3_STR;
+    case 4:
+        return PWM_MOD4_STR;
+    case 5:
+        return PWM_MOD5_STR;
+    case 6:
+        return PWM_MOD6_STR;
+    case 7:
+        return PWM_MOD7_STR;
+    default:
+        return PWM_MOD_TEST_STR;
+    }
 }

@@ -175,6 +175,9 @@ uint8_t ASRPRO_Get_CMD(void)
 	}
 	return 0;
 }
+// char SendBuf[20];
+// sprintf(SendBuf, "Temp=%d\n", Temp);
+// Debug_printf(SendBuf);
 void Debug_printf(char *SendBuf)
 {
 	Debug_SendStr(SendBuf);

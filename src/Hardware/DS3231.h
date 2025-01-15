@@ -1,42 +1,57 @@
 #ifndef __DS3231_H__
 #define __DS3231_H__
+
 #include "sys.h"
 #include "I2C.h"
 #include <time.h>
+#include <stdio.h>
+#include "UART.h"
 
 #define DS3231_ADDRESS 0xD0
 #define DS3231_CONTROL 0x0E
 #define DS3231_STATUS 0x0F
-#define DS3231_Temp 0x0B
-#define DS3231_Temp2 0x0C
 
-#define Time_Year       (Time_Date.tm_year + 1900)
-#define Time_Mon        (Time_Date.tm_mon + 1)
-#define Time_Day        (Time_Date.tm_mday)
-#define Time_Week       (Time_Date.tm_wday)
-#define Time_Hour       (Time_Date.tm_hour)
-#define Time_Min        (Time_Date.tm_min)
-#define Time_Sec        (Time_Date.tm_sec)
+#define Time_Year (Time.tm_year + 1900)
+#define Time_Mon (Time.tm_mon + 1)
+#define Time_Day (Time.tm_mday)
+#define Time_Week (Time.tm_wday)
+#define Time_Hour (Time.tm_hour)
+#define Time_Min (Time.tm_min)
+#define Time_Sec (Time.tm_sec)
 
-extern int8_t TIME[7];
-extern uint8_t AlarmStatus[2];
-extern uint8_t Alarm_Set[8];
-extern int8_t Alarm_Date[2];
-extern int8_t Alarm_Date_Temp[2];
-extern uint8_t Alarm_Enable;
-extern int8_t PWM_Mod;
+#define Alarm_1 0
+#define Alarm_2 1
+#define Alarm_PerMin 0x0E
+#define Alarm_MatchMin 0x0C
+#define Alarm_MatchHour 0x08
+#define Alarm_MatchDay 0x00
+#define Alarm_MatchWeek 0x10
 
-extern struct tm Time_Date;
-
+typedef struct
+{
+    int8_t Day;
+    int8_t Week;
+    int8_t Hour;
+    int8_t Min;
+    uint8_t Status;
+    uint8_t Enable;
+    uint8_t Num;
+    uint8_t Mod;
+    uint8_t WeekSet[7];
+} AlarmTypeDef;
 
 void DS3231_WriteByte(uint8_t WordAddress, uint8_t Data);
 uint8_t DS3231_ReadByte(uint8_t WordAddress);
-void DS3231_ReadTime(void);
-time_t DS3231_GetTimeStamp(void);
-void DS3231_WriteTime(struct tm time_data);
-void DS3231_WriteAlarm(void);
+void DS3231_ReadTime(struct tm *Time);
+void DS3231_ReadStatus(AlarmTypeDef *Alarm);
+time_t DS3231_GetTimeStamp(struct tm *Time);
+void DS3231_WriteTime(struct tm *Time);
+void DS3231_InitAlarm(AlarmTypeDef *Alarm);
+void DS3231_WriteAlarm(AlarmTypeDef *Alarm);
 void DS3231_ResetAlarm(void);
-void DS3231_Init(void);
-
+void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm);
+void TimeJudge(struct tm *Time);
+void Alarm_Judge(AlarmTypeDef *Alarm);
+char *Get_Week_Str(uint8_t time_Week);
 
 #endif

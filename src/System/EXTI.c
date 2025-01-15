@@ -2,32 +2,32 @@
 
 static uint8_t EXTI_Flag;
 
-// Íâ²¿ÖĞ¶Ï0ÅäÖÃ
+// å¤–éƒ¨ä¸­æ–­0é…ç½®
 void EXTI0_Init(void)
 {
     EXTI_InitTypeDef EXTI_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
     GPIO_InitTypeDef GPIO_InitStructure;
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE); // Ê¹ÄÜ PORTA,PORTE Ê±ÖÓºÍÊ¹ÄÜ AFIO Ê±ÖÓ
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE); // ä½¿èƒ½ PORTA,PORTE æ—¶é’Ÿå’Œä½¿èƒ½ AFIO æ—¶é’Ÿ
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; // PA0 ÉèÖÃ³ÉÊäÈë£¬ÉÏÀ­
-    GPIO_Init(GPIOA, &GPIO_InitStructure);        // ³õÊ¼»¯PA0
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; // PA0 è®¾ç½®æˆè¾“å…¥ï¼Œä¸Šæ‹‰
+    GPIO_Init(GPIOA, &GPIO_InitStructure);        // åˆå§‹åŒ–PA0
 
     GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
 
     EXTI_InitStructure.EXTI_Line = EXTI_Line0;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-    EXTI_Init(&EXTI_InitStructure); // ³õÊ¼»¯ EXTI ¼Ä´æÆ÷
+    EXTI_Init(&EXTI_InitStructure); // åˆå§‹åŒ– EXTI å¯„å­˜å™¨
 
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;             // Ê¹ÄÜÍâ²¿ÖĞ¶ÏÍ¨µÀ
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; // ÇÀÕ¼ÓÅÏÈ¼¶ 2£¬
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;        // ×ÓÓÅÏÈ¼¶ 2
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;              // Ê¹ÄÜÍâ²¿ÖĞ¶ÏÍ¨µÀ
-    NVIC_Init(&NVIC_InitStructure);                              // ³õÊ¼»¯ NVIC
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;             // ä½¿èƒ½å¤–éƒ¨ä¸­æ–­é€šé“
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02; // æŠ¢å ä¼˜å…ˆçº§ 2ï¼Œ
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;        // å­ä¼˜å…ˆçº§ 2
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;              // ä½¿èƒ½å¤–éƒ¨ä¸­æ–­é€šé“
+    NVIC_Init(&NVIC_InitStructure);                              // åˆå§‹åŒ– NVIC
 
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // ÉèÖÃ NVIC ÖĞ¶Ï·Ö×é 2
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); // è®¾ç½® NVIC ä¸­æ–­åˆ†ç»„ 2
 }
 
 uint8_t EXTI0_Get_Flag(void)
@@ -39,9 +39,9 @@ uint8_t EXTI0_Get_Flag(void)
 
 void EXTI0_IRQHandler(void)
 {
-    if (EXTI_GetITStatus(EXTI_Line0) != RESET) // ÅĞ¶ÏÄ³¸öÏßÉÏµÄÖĞ¶ÏÊÇ·ñ·¢Éú
+    if (EXTI_GetITStatus(EXTI_Line0) != RESET) // åˆ¤æ–­æŸä¸ªçº¿ä¸Šçš„ä¸­æ–­æ˜¯å¦å‘ç”Ÿ
     {
         EXTI_Flag = 1;
-        EXTI_ClearITPendingBit(EXTI_Line0); // Çå³ı LINE0 ÉÏµÄÖĞ¶Ï±êÖ¾Î»
+        EXTI_ClearITPendingBit(EXTI_Line0); // æ¸…é™¤ LINE0 ä¸Šçš„ä¸­æ–­æ ‡å¿—ä½
     }
 }

@@ -12,27 +12,13 @@
 #include "SHT30.h"
 #include "EXTI.h"
 
-#define Music_MAX_NUM 2
-#define Music_Volume 2
-#define DS3231_STATUS 0x0F
-
-// sbit BUZ = P0 ^ 0;
-// sbit RELAY = P2 ^ 0;
-
-int8_t Alarm_Choose_Flag = 0;
-int16_t Time_Choose_Flag = 0;
-int8_t TIME_Judge;
-uint8_t Alarm_Set_Judge[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
 uint8_t BUZ_Flag = 1;
-
-uint8_t KeyNum;
-uint8_t CmdNum;
-int8_t EncoderNum;
-
-
+uint8_t PWM_Mod=1;
+AlarmTypeDef Alarm = {.Num = Alarm_1};
+struct tm Time;
 void Wait_Key()
 {
+	uint8_t KeyNum;
 	KeyNum = Key_GetNumber();
 
 	while (!KeyNum)
@@ -53,6 +39,9 @@ void KeyNumber_Set_Clock()
 {
 	uint8_t Time_Year_Str[5], Time_Mon_Str[3], Time_Day_Str[3];
 	uint8_t Time_Choose = 0;
+	int8_t Time_Choose_Flag = 0;
+	int8_t EncoderNum;
+	uint8_t KeyNum;
 
 	KeyNum = Key_GetNumber();
 	while (KeyNum != 2)
@@ -108,22 +97,22 @@ void KeyNumber_Set_Clock()
 				switch (Time_Choose)
 				{
 				case 0:
-					Time_Date.tm_year += EncoderNum;
+					Time.tm_year += EncoderNum;
 					break;
 				case 1:
-					Time_Date.tm_mon += EncoderNum;
+					Time.tm_mon += EncoderNum;
 					break;
 				case 2:
-					Time_Date.tm_mday += EncoderNum;
+					Time.tm_mday += EncoderNum;
 					break;
 				case 3:
-					Time_Date.tm_hour += EncoderNum;
+					Time.tm_hour += EncoderNum;
 					break;
 				case 4:
-					Time_Date.tm_min += EncoderNum;
+					Time.tm_min += EncoderNum;
 					break;
 				}
-				TimeJudge();
+				TimeJudge(&Time);
 			}
 			OLED_Display(Image_BW, Part);
 		}
@@ -136,68 +125,29 @@ void KeyNumber_Set_Clock()
 			Time_Choose_Flag = -1;
 			break;
 		case 2:
-			DS3231_WriteTime(Time_Date);
+			DS3231_WriteTime(&Time);
 			EPD_WhiteScreen_White();
 			break;
 		}
 	}
 }
-void WriteAlarm()
+void WriteAlarm(AlarmTypeDef *Alarm, uint8_t *Mod)
 {
-	if (PWM_Mod == 7)
-	{
-		Alarm_Date[0] = 6;
-		Alarm_Date[1] = 0;
-		Alarm_Date_Temp[0] = 6;
-		Alarm_Date_Temp[1] = 0;
-	}
-	else
-	{
-		switch (PWM_Mod)
-		{
-		case 0:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 5) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 5) % 60;
-			break;
-		case 1:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 10) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 10) % 60;
-			break;
-		case 2:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 15) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 15) % 60;
-			break;
-		case 3:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 20) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 20) % 60;
-			break;
-		case 4:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 30) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 30) % 60;
-			break;
-		case 5:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 40) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 40) % 60;
-			break;
-		case 6:
-			Alarm_Date_Temp[0] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 60) / 60;
-			Alarm_Date_Temp[1] = (Alarm_Date[0] * 60 + Alarm_Date[1] - 60) % 60;
-			break;
-		}
-
-		if (Alarm_Date_Temp[0] < 0 || Alarm_Date_Temp[1] < 0)
-		{
-			Alarm_Date_Temp[0] = (1440 + Alarm_Date_Temp[0] * 60 + Alarm_Date_Temp[1]) / 60;
-			Alarm_Date_Temp[1] = (1440 + Alarm_Date_Temp[0] * 60 + Alarm_Date_Temp[1]) % 60;
-		}
-	}
-	DS3231_WriteAlarm();
+	AlarmTypeDef alarm_temp;
+	alarm_temp = *Alarm;
+	alarm_temp.Mod = Alarm_MatchHour;
+	PWM_AdjustAlarm(&alarm_temp, Mod, -1);
+	DS3231_WriteAlarm(&alarm_temp);
 }
 
 void KeyNumber_Set_Alarm()
 {
 	uint8_t Alarm_Hour_Str[3], Alarm_Min_Str[3], Alarm_Flag, Light_Flag, Muzic_Flag, Buzzer_Flag;
 	uint8_t Alarm_Choose = 0;
+	int8_t Alarm_Choose_Flag = 0;
+	int8_t EncoderNum;
+	uint8_t KeyNum;
+
 	KeyNum = Key_GetNumber();
 	while (KeyNum != 2)
 	{
@@ -210,20 +160,20 @@ void KeyNumber_Set_Alarm()
 
 			OLED_Clear(WHITE);
 
-			sprintf((char *)Alarm_Hour_Str, "%d", Alarm_Hour);
-			sprintf((char *)Alarm_Min_Str, "%02d", Alarm_Min);
+			sprintf((char *)Alarm_Hour_Str, "%d", Alarm.Hour);
+			sprintf((char *)Alarm_Min_Str, "%02d", Alarm.Min);
 			Alarm_Flag = 1;
 			Light_Flag = 1;
 			Muzic_Flag = 1;
 			Buzzer_Flag = 1;
 
-			OLED_Printf(6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一 %s", Alarm_Set[1] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二 %s", Alarm_Set[2] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三 %s", Alarm_Set[3] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四 %s", Alarm_Set[4] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五 %s", Alarm_Set[5] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六 %s", Alarm_Set[6] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日 %s", Alarm_Set[7] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一 %s", Alarm.WeekSet[0] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二 %s", Alarm.WeekSet[1] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三 %s", Alarm.WeekSet[2] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四 %s", Alarm.WeekSet[3] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五 %s", Alarm.WeekSet[4] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六 %s", Alarm.WeekSet[5] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日 %s", Alarm.WeekSet[6] ? "对" : "错");
 			OLED_DrawLine(72, 0, 72, 128, BLACK);
 			OLED_DrawLine(72, 110, OLED_W, 110, BLACK);
 
@@ -238,7 +188,7 @@ void KeyNumber_Set_Alarm()
 						Alarm_Flag = 0;
 						break;
 					case 8:
-						sprintf((char *)Alarm_Hour_Str, "%s", Alarm_Hour > 9 ? "  " : " ");
+						sprintf((char *)Alarm_Hour_Str, "%s", Alarm.Hour > 9 ? "  " : " ");
 						break;
 					case 9:
 						sprintf((char *)Alarm_Min_Str, "%s", "  ");
@@ -255,7 +205,7 @@ void KeyNumber_Set_Alarm()
 					}
 			}
 
-			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 光%smin  %s%s %s%s", Alarm_Flag ? (Alarm_Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(PWM_Mod) : (PWM_Mod ? "  " : " "), Muzic_Flag ? "音" : "  ", Alarm_Set[0] ? "对" : "错", Buzzer_Flag ? "符" : "  ", Alarm_Set[0] ? "对" : "错");
+			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 光%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&PWM_Mod) : (PWM_Mod ? "  " : " "), Muzic_Flag ? "音" : "  ", Alarm.WeekSet[0] ? "对" : "错", Buzzer_Flag ? "符" : "  ", Alarm.WeekSet[0] ? "对" : "错");
 
 			Alarm_Choose_Flag++;
 			if (Alarm_Choose_Flag == 1)
@@ -265,32 +215,33 @@ void KeyNumber_Set_Alarm()
 			if (EncoderNum)
 			{
 				if (Alarm_Choose < 7)
-					Alarm_Set[Alarm_Choose + 1] = !Alarm_Set[Alarm_Choose + 1];
+					Alarm.WeekSet[Alarm_Choose ] = !Alarm.WeekSet[Alarm_Choose];
 				else
 				{
 					switch (Alarm_Choose)
 					{
 					case 7:
-						Alarm_Enable = !Alarm_Enable;
+						Alarm.Enable = !Alarm.Enable;
 						break;
 					case 8:
-						Alarm_Date[0] += EncoderNum;
+						Alarm.Hour += EncoderNum;
 						break;
 					case 9:
-						Alarm_Date[1] += EncoderNum;
+						Alarm.Min += EncoderNum;
 						break;
 					case 10:
 						PWM_Mod += EncoderNum;
 						break;
 					case 11:
-						Alarm_Set[0] = !Alarm_Set[0];
+						Alarm.WeekSet[0] = !Alarm.WeekSet[0];
 						break;
 					case 12:
-						Alarm_Set[0] = !Alarm_Set[0];
+						Alarm.WeekSet[0] = !Alarm.WeekSet[0];
 						break;
 					}
 				}
-				Alarm_Judge();
+				Alarm_Judge(&Alarm);
+				PWM_Judge(&PWM_Mod);
 			}
 
 			OLED_Display(Image_BW, Part);
@@ -304,7 +255,7 @@ void KeyNumber_Set_Alarm()
 			Alarm_Choose_Flag = -1;
 			break;
 		case 2:
-			WriteAlarm();
+			WriteAlarm(&Alarm, &PWM_Mod);
 			EPD_WhiteScreen_White();
 			break;
 		}
@@ -341,18 +292,17 @@ void KeyNumber_Set_Alarm()
 // }
 void KeyNumber_Set()
 {
-	// EPD_WhiteScreen_White();
+	int8_t EncoderNum;
+	uint8_t KeyNum;
+
 	OLED_Clear(WHITE);
 
 	OLED_ShowChinese(48, 0, "设", 16, BLACK);
 	OLED_ShowChinese(64, 0, "置", 16, BLACK);
-
 	OLED_ShowChinese(0, 3 * 16, "时", 16, BLACK);
 	OLED_ShowChinese(16, 3 * 16, "间", 16, BLACK);
-
 	OLED_ShowChinese(48, 3 * 16, "其", 16, BLACK);
 	OLED_ShowChinese(64, 3 * 16, "他", 16, BLACK);
-
 	OLED_ShowChinese(96, 3 * 16, "闹", 16, BLACK);
 	OLED_ShowChinese(112, 3 * 16, "钟", 16, BLACK);
 
@@ -405,12 +355,15 @@ void KeyNumber_CTRL4()
 
 int main()
 {
-	uint8_t Refresh_Flag = 0;
+	uint8_t Refresh_Flag = 0,TIME_Judge=0;
+	uint8_t KeyNum,CmdNum;
 	Key_Init();
 	ASRPRO_Init();
 	Uart_Init(115200);
 	Encoder_Init();
-	DS3231_Init();
+	// DS3231_InitAlarm(&Alarm);
+	DS3231_Init(&Time, &Alarm);
+	PWM_AdjustAlarm(&Alarm, &PWM_Mod, 1);
 	OLED_Init();
 	Buzzer_Init();
 	PWM_Init();
@@ -418,29 +371,10 @@ int main()
 	SHT30_Init();
 	EXTI0_Init();
 	Refresh_Flag = 1;
-	// Music_CMD(0, Music_Volume, Volume);
 	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
 
 	Debug_printf("Init OK\r\n");
-
-	// DS3231_ReadTime();
-
-	// while (1)
-	// 	{DS3231_ReadTime();
-	// 	OLED_ShowNum(0, 2, Time_Sec, 2, 16, BLACK);
-	// 		OLED_Display(Image_BW, Part);
-	// 		OLED_Clear(WHITE);
-	// 		OLED_Display(Image_BW, Part);
-	// 	}
-
-	// OLED_ShowChinese(270, 50, "音", OLED_8X16, BLACK);
-	// OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK); // 显示图片
-
-	// while (1)
-	// {
-	// 	/* code */
-	// }
 
 	while (1)
 	{
@@ -471,23 +405,23 @@ int main()
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
 			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week));
-			OLED_Printf(16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin 音", SHT.Temp, SHT.Hum, Alarm_Enable ? "铃" : "否", Alarm_Date[0], Alarm_Date[1], Get_PWM_Str(PWM_Mod));
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin 音", SHT.Temp, SHT.Hum, Alarm.Enable ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&PWM_Mod));
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
-			if (Alarm_Set[1])
+			if (Alarm.WeekSet[0])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一");
-			if (Alarm_Set[2])
+			if (Alarm.WeekSet[1])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二");
-			if (Alarm_Set[3])
+			if (Alarm.WeekSet[2])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三");
-			if (Alarm_Set[4])
+			if (Alarm.WeekSet[3])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四");
-			if (Alarm_Set[5])
+			if (Alarm.WeekSet[4])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五");
-			if (Alarm_Set[6])
+			if (Alarm.WeekSet[5])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六");
-			if (Alarm_Set[7])
+			if (Alarm.WeekSet[6])
 				OLED_Printf(LINE_END + 6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日");
 		}
 
@@ -514,12 +448,19 @@ int main()
 
 		if (EXTI0_Get_Flag())
 		{
-			PWM_Run();
+			EPD_WeakUp();
+			EPD_WhiteScreen_White();
+			OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
+			OLED_Display(Image_BW, Part);
+			EPD_DeepSleep();
+			PWM_Run(&PWM_Mod);
 			DS3231_ResetAlarm();
+			EPD_WeakUp();
+			EPD_WhiteScreen_White();
 		}
 
 		Delay_ms(1000);
-		DS3231_ReadTime();
+		DS3231_ReadTime(&Time);
 
 		if (CmdNum)
 		{
