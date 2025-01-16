@@ -99,27 +99,11 @@ void W25Q128_ReadData(uint32_t Address, uint8_t *DataArray, uint32_t Count)
 
 void W25Q128_ReadSetting(SettingTypeDef *Set)
 {
-    uint8_t time_temp[10];
-    W25Q128_ReadData(SETTING_ADDRESS, time_temp, 10);
-    Set->PwmMod=time_temp[0];
-    Set->MuzicEnable=time_temp[1];
-    Set->BuzzerEnable=time_temp[2];
-    for(uint8_t i=0;i<7;i++)
-    {
-        Set->WeekEnable[i]=time_temp[3+i];
-    }
+    W25Q128_ReadData(SETTING_ADDRESS, (uint8_t*)Set, sizeof(*Set));
 }
 
 void W25Q128_WriteSetting(SettingTypeDef *Set)
 {
-    uint8_t time_temp[10];
-    time_temp[0]=Set->PwmMod;
-    time_temp[1]=Set->MuzicEnable;
-    time_temp[2]=Set->BuzzerEnable;
-    for(uint8_t i=0;i<7;i++)
-    {
-        time_temp[3+i]=Set->WeekEnable[i];
-    }
     W25Q128_SectorErase(SETTING_ADDRESS);
-    W25Q128_PageProgram(SETTING_ADDRESS, time_temp, 10);
+    W25Q128_PageProgram(SETTING_ADDRESS, (uint8_t*)Set, sizeof(*Set));
 }

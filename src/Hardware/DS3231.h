@@ -19,8 +19,8 @@
 #define Time_Min (Time.tm_min)
 #define Time_Sec (Time.tm_sec)
 
-#define Alarm_1 0
-#define Alarm_2 1
+#define Alarm_1 1
+#define Alarm_2 2
 #define Alarm_PerMin 0x0E
 #define Alarm_MatchMin 0x0C
 #define Alarm_MatchHour 0x08
@@ -42,7 +42,7 @@ typedef struct
 void DS3231_WriteByte(uint8_t WordAddress, uint8_t Data);
 uint8_t DS3231_ReadByte(uint8_t WordAddress);
 void DS3231_ReadTime(struct tm *Time);
-void DS3231_ReadStatus(AlarmTypeDef *Alarm);
+uint8_t DS3231_ReadStatus(AlarmTypeDef *Alarm);
 time_t DS3231_GetTimeStamp(struct tm *Time);
 void DS3231_WriteTime(struct tm *Time);
 void DS3231_InitAlarm(AlarmTypeDef *Alarm);

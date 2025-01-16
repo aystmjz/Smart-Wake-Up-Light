@@ -53,12 +53,15 @@ void DS3231_ReadTime(struct tm *Time)
 }
 
 /// @brief 读取闹钟状态数据
-void DS3231_ReadStatus(AlarmTypeDef *Alarm)
+uint8_t DS3231_ReadStatus(AlarmTypeDef *Alarm)
 {
+	uint8_t temp;
+	temp=DS3231_ReadByte(DS3231_STATUS);
 	if (Alarm->Num == Alarm_1)
-		Alarm->Status = (DS3231_ReadByte(DS3231_STATUS) & 0x01);
+		Alarm->Status = temp& 0x01;
 	else if (Alarm->Num == Alarm_2)
-		Alarm->Status = (DS3231_ReadByte(DS3231_STATUS) & 0x02) >> 1;
+		Alarm->Status = (temp & 0x02) >> 1;
+	return Alarm->Status;
 }
 
 /// @brief 获取时间戳
@@ -98,6 +101,7 @@ void DS3231_InitAlarm(AlarmTypeDef *Alarm)
 }
 void DS3231_WriteAlarm(AlarmTypeDef *Alarm)
 {
+	uint8_t temp;
 	if (Alarm->Num == Alarm_1)
 	{
 		DS3231_WriteByte(RTC_ALARM1_ADDR[0], 0);
@@ -107,6 +111,8 @@ void DS3231_WriteAlarm(AlarmTypeDef *Alarm)
 			DS3231_WriteByte(RTC_ALARM1_ADDR[3], ((Alarm->Mod & 0x08) << 4) | 0x40 | Alarm->Week);
 		else
 			DS3231_WriteByte(RTC_ALARM1_ADDR[3], ((Alarm->Mod & 0x08) << 4) | ((Alarm->Day / 10) << 4) | (Alarm->Day % 10));
+		temp = DS3231_ReadByte(DS3231_CONTROL);
+		DS3231_WriteByte(DS3231_CONTROL, 0x04 | temp & 0x02 | Alarm->Enable);
 	}
 	else if (Alarm->Num == Alarm_2)
 	{
@@ -116,8 +122,9 @@ void DS3231_WriteAlarm(AlarmTypeDef *Alarm)
 			DS3231_WriteByte(RTC_ALARM2_ADDR[2], ((Alarm->Mod & 0x08) << 4) | 0x40 | Alarm->Week);
 		else
 			DS3231_WriteByte(RTC_ALARM2_ADDR[2], ((Alarm->Mod & 0x08) << 4) | ((Alarm->Day / 10) << 4) | (Alarm->Day % 10));
+		temp = DS3231_ReadByte(DS3231_CONTROL);
+		DS3231_WriteByte(DS3231_CONTROL, 0x04 | temp & 0x01 | Alarm->Enable << 1);
 	}
-	DS3231_WriteByte(DS3231_CONTROL, 0x04 | (Alarm->Enable << Alarm->Num));
 }
 
 /// @brief 复位闹钟

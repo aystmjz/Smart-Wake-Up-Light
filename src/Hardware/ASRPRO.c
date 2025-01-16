@@ -39,10 +39,16 @@ void ASRPRO_Power_OFF(void)
     ASRPRO_Mute_OFF();
 }
 
-void ASRPRO_Power_Turn(void)
+uint8_t ASRPRO_Power_Turn(void)
 {
     if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_8) == 0)
+    {
         ASRPRO_Power_OFF();
+        return 0;
+    }
     else
+    {
         ASRPRO_Power_ON();
+        return 1;
+    }
 }

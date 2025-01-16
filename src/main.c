@@ -12,6 +12,7 @@
 #include "SHT30.h"
 #include "EXTI.h"
 #include "W25Q128.h"
+#include "PWR.h"
 
 uint8_t BUZ_Flag = 1;
 AlarmTypeDef Alarm = {.Num = Alarm_1};
@@ -355,30 +356,44 @@ void KeyNumber_CTRL4()
 	// DHT11_Read_RH_C();
 }
 
+void LowPowerON(void)
+{
+	AlarmTypeDef alarm;
+	DS3231_InitAlarm(&alarm);
+	alarm.Enable = 1;
+	alarm.Num = Alarm_2;
+	alarm.Mod = Alarm_PerMin;
+	DS3231_WriteAlarm(&alarm);
+}
+
+void LowPowerOFF(void)
+{
+	AlarmTypeDef alarm;
+	DS3231_InitAlarm(&alarm);
+	alarm.Enable = 0;
+	alarm.Num = Alarm_2;
+	DS3231_WriteAlarm(&alarm);
+}
+
 int main()
 {
-	uint8_t Refresh_Flag = 1, TIME_Judge = 0;
+	uint8_t Refresh_Flag = 1, TIME_Judge = 0, ASRPRO_Status = 0;
 	uint8_t KeyNum, CmdNum;
 	uint8_t MID = 0;
 	uint16_t DID = 0;
 	char SendBuf[20];
 
 	Key_Init();
-	ASRPRO_Init();
-	Uart_Init(115200);
 	Encoder_Init();
-	DS3231_Init(&Time, &Alarm);
 	OLED_Init();
-	Buzzer_Init();
-	PWM_Init();
-	LED_Init();
 	SHT30_Init();
 	EXTI0_Init();
 	W25Q128_Init();
-	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
-	EPD_WhiteScreen_White();
+	ASRPRO_Init();
+	Buzzer_Init();
+	Uart_Init(115200);
+	DS3231_Init(&Time, &Alarm);
 
-	Debug_printf("Init OK\r\n");
 	W25Q128_ReadID(&MID, &DID);
 	sprintf(SendBuf, "MID=%d DID=%d\r\n", MID, DID);
 	Debug_printf(SendBuf);
@@ -387,6 +402,25 @@ int main()
 		W25Q128_ReadSetting(&Set);
 		PWM_AdjustAlarm(&Alarm, &Set.PwmMod, 1);
 	}
+
+	if (!Set.LowPowerEnable)
+	{
+		LED_Init();
+		PWM_Init();
+		LowPowerOFF();
+		Debug_printf("LowPower OFF\r\n");
+	}
+	else
+	{
+		PWR_Init();
+		LowPowerON();
+		EXTI5_Init();
+		Debug_printf("LowPower ON\r\n");
+	}
+
+	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
+	EPD_WhiteScreen_White();
+	Debug_printf("Init OK\r\n");
 
 	while (1)
 	{
@@ -398,7 +432,7 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				ASRPRO_Power_Turn();
+				ASRPRO_Status = ASRPRO_Power_Turn();
 				break;
 			case 2:
 				EPD_WeakUp();
@@ -416,8 +450,8 @@ int main()
 			OLED_Printf(Time_Hour ? 10 : 62, 4, OLED_52X104, BLACK, "%d", Time_Hour);
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
-			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week));
-			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin %s", SHT.Temp, SHT.Hum, Alarm.Enable ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), Set.MuzicEnable ? "音" : " ");
+			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), Set.LowPowerEnable ? "叶" : "  ", ASRPRO_Status ? "助 " : "  ");
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable && !Set.BuzzerEnable) ? "音" : " ");
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
@@ -460,19 +494,38 @@ int main()
 
 		if (EXTI0_Get_Flag())
 		{
-			EPD_WeakUp();
-			EPD_WhiteScreen_White();
-			OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
-			OLED_Display(Image_BW, Part);
-			EPD_DeepSleep();
-			PWM_Run(&Set.PwmMod);
+			if (DS3231_ReadStatus(&Alarm) && !Set.LowPowerEnable)
+			{
+				EPD_WeakUp();
+				EPD_WhiteScreen_White();
+				OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
+				OLED_Display(Image_BW, Part);
+				EPD_DeepSleep();
+				PWM_Run(&Set.PwmMod);
+				EPD_WeakUp();
+				EPD_WhiteScreen_White();
+			}
 			DS3231_ResetAlarm();
-			EPD_WeakUp();
-			EPD_WhiteScreen_White();
 		}
 
-		Delay_ms(1000);
+		if (Set.LowPowerEnable)
+		{
+			Debug_printf("Power OFF\r\n");
+			Delay_ms(10);
+			PWR_STOP();
+			Debug_printf("Power ON\r\n");
+		}
+		else
+		{
+			Delay_ms(1000);
+		}
 		DS3231_ReadTime(&Time);
+
+		if (EXTI5_Get_Flag())
+		{
+			Debug_printf("EXTI5\r\n");
+			Delay_ms(3000);
+		}
 
 		if (CmdNum)
 		{

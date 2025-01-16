@@ -8,7 +8,7 @@
 void ASRPRO_Init(void);
 void ASRPRO_Power_ON(void);
 void ASRPRO_Power_OFF(void);
-void ASRPRO_Power_Turn(void);
+uint8_t ASRPRO_Power_Turn(void);
 void ASRPRO_Mute_ON(void);
 void ASRPRO_Mute_OFF(void);
 
