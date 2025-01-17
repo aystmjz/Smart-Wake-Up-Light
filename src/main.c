@@ -149,6 +149,8 @@ void KeyNumber_Set_Alarm()
 	int8_t Alarm_Choose_Flag = 0;
 	int8_t EncoderNum;
 	uint8_t KeyNum;
+	AlarmTypeDef alarm_temp;
+	uint8_t Data[200];
 
 	KeyNum = Key_GetNumber();
 	while (KeyNum != 2)
@@ -179,6 +181,13 @@ void KeyNumber_Set_Alarm()
 			OLED_DrawLine(72, 0, 72, 128, BLACK);
 			OLED_DrawLine(72, 110, OLED_W, 110, BLACK);
 
+			PWM_ChartData(Data, 200, &Set.PwmMod);
+			OLED_DrawChart(80, 0, OLED_W - 80, 88, Data, 200, BLACK);
+			alarm_temp = Alarm;
+			PWM_AdjustAlarm(&alarm_temp, &Set.PwmMod, -1);
+			OLED_Printf(84, 88, OLED_8X16, BLACK, "%d:%02d                  %d:%02d", alarm_temp.Hour, alarm_temp.Min, Alarm.Hour, Alarm.Min);
+			OLED_Printf(148, 0, OLED_8X16, BLACK, "光照曲线");
+
 			if (Alarm_Choose_Flag < 0)
 			{
 				if (Alarm_Choose <= 6)
@@ -207,7 +216,7 @@ void KeyNumber_Set_Alarm()
 					}
 			}
 
-			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 光%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "音" : "  ", Set.MuzicEnable ? "对" : "错", Buzzer_Flag ? "符" : "  ", Set.BuzzerEnable ? "对" : "错");
+			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 灯%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "音" : "  ", Set.MuzicEnable ? "对" : "错", Buzzer_Flag ? "符" : "  ", Set.BuzzerEnable ? "对" : "错");
 
 			Alarm_Choose_Flag++;
 			if (Alarm_Choose_Flag == 1)
@@ -265,95 +274,107 @@ void KeyNumber_Set_Alarm()
 	}
 }
 
-// void KeyNumber_Set_Other()
-// {
-// 	OLED_Clear();
-// 	OLED_DrawLight();
-// 	Wait_Key();
-// 	switch (KeyNum)
-// 	{
-// 	case 1:
-// 	{
-// 		uint8_t i, Temp = 0x00;
-// 		for (i = 0; i <= 180; i++)
-// 		{
-// 			AT24C02_WriteByte(Temp, (i * i) / 140);
-// 			Temp++;
-// 		}
-// 		break;
-// 	}
-// 	case 2:
-// 		OLED_Clear();
-// 		break;
-// 	case 3:
-// 		OLED_Clear();
-// 		break;
-// 	case 4:
-// 		OLED_Clear();
-// 		break;
-// 	}
-// }
+void KeyNumber_Set_Other()
+{
+	uint8_t LowPower_Flag;
+	uint8_t Other_Choose = 0;
+	int8_t Other_Choose_Flag = 0;
+	int8_t EncoderNum;
+	uint8_t KeyNum;
+
+	KeyNum = Key_GetNumber();
+	while (KeyNum != 2)
+	{
+		KeyNum = Key_GetNumber();
+
+		while (!KeyNum)
+		{
+			KeyNum = Key_GetNumber();
+
+			OLED_Clear(WHITE);
+			LowPower_Flag = 1;
+
+			if (Other_Choose_Flag < 0)
+			{
+				switch (Other_Choose)
+				{
+				case 0:
+					LowPower_Flag = 0;
+					break;
+				}
+			}
+			OLED_Printf(8, OLED_H / 2, OLED_8X16, BLACK, "%s叶%s", LowPower_Flag ? "低功耗模式" : "          ", Set.LowPowerEnable ? "对" : "错");
+
+			Other_Choose_Flag++;
+			if (Other_Choose_Flag == 1)
+				Other_Choose_Flag = -1;
+
+			EncoderNum = Encoder_Get_Div4();
+			if (EncoderNum)
+			{
+				switch (Other_Choose)
+				{
+				case 0:
+					Set.LowPowerEnable = !Set.LowPowerEnable;
+					break;
+				}
+			}
+			OLED_Display(Image_BW, Part);
+		}
+
+		switch (KeyNum)
+		{
+		case 1:
+			Other_Choose++;
+			Other_Choose %= 1;
+			Other_Choose_Flag = -1;
+			break;
+		case 2:
+			W25Q128_WriteSetting(&Set);
+			EPD_WhiteScreen_White();
+			break;
+		}
+	}
+}
 void KeyNumber_Set()
 {
 	int8_t EncoderNum;
 	uint8_t KeyNum;
 
 	OLED_Clear(WHITE);
-
-	OLED_ShowChinese(48, 0, "设", 16, BLACK);
-	OLED_ShowChinese(64, 0, "置", 16, BLACK);
-	OLED_ShowChinese(0, 3 * 16, "时", 16, BLACK);
-	OLED_ShowChinese(16, 3 * 16, "间", 16, BLACK);
-	OLED_ShowChinese(48, 3 * 16, "其", 16, BLACK);
-	OLED_ShowChinese(64, 3 * 16, "他", 16, BLACK);
-	OLED_ShowChinese(96, 3 * 16, "闹", 16, BLACK);
-	OLED_ShowChinese(112, 3 * 16, "钟", 16, BLACK);
-
+	OLED_Printf(132, 30, OLED_8X16, BLACK, "设置");
+	OLED_Printf(84, 66, OLED_8X16, BLACK, "时间  其他  闹钟");
+	OLED_DrawRectangle(76, 28, OLED_W - 76, OLED_H - 28, BLACK, 0);
+	OLED_DrawLine(76, 50, OLED_W - 76, 50, BLACK);
 	OLED_Display(Image_BW, Part);
 
 	Delay_ms(1000);
 	KeyNum = Key_Clear();
-	while (KeyNum != 2)
+	while (!KeyNum)
 	{
 		KeyNum = Key_GetNumber();
-		while (!KeyNum)
-		{
-			KeyNum = Key_GetNumber();
-			EncoderNum = Encoder_Get_Div4();
+		EncoderNum = Encoder_Get_Div4();
 
-			if (EncoderNum < 0)
-			{
-				KeyNumber_Set_Clock();
-				return;
-			}
-			else if (EncoderNum > 0)
-			{
-				KeyNumber_Set_Alarm();
-				return;
-			}
+		if (EncoderNum < 0)
+		{
+			KeyNumber_Set_Clock();
+			return;
 		}
-
-		switch (KeyNum)
+		else if (EncoderNum > 0)
 		{
-		case 1:
-			EPD_WhiteScreen_White();
-			KeyNum = 2;
-			break;
-		case 2:
-			EPD_WhiteScreen_White();
-			break;
+			KeyNumber_Set_Alarm();
+			return;
 		}
 	}
-}
-
-void KeyNumber_CTRL4()
-{
-	// Music_CMD(0, 0, Sotp);
-	// UART_SendByte(0xFE);
-	// UART_SendByte(0xFE);
-	// UART_SendByte(0xFE);
-
-	// DHT11_Read_RH_C();
+	switch (KeyNum)
+	{
+	case 1:
+		KeyNumber_Set_Other();
+		break;
+	case 2:
+		KeyNumber_Set_Other();
+		break;
+	}
 }
 
 void LowPowerON(void)
@@ -451,7 +472,7 @@ int main()
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
 			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), Set.LowPowerEnable ? "叶" : "  ", ASRPRO_Status ? "助 " : "  ");
-			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 光%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable && !Set.BuzzerEnable) ? "音" : " ");
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable && !Set.BuzzerEnable) ? "音" : " ");
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);

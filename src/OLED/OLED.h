@@ -83,6 +83,7 @@ void OLED_DrawPoint(u16 Xpoint, u16 Ypoint, u16 Color);                         
 void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color);               // 画线
 void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u8 mode); // 画矩形
 void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode);        // 画圆
+void OLED_DrawChart(u16 Xstart, u16 Ystart,u16 Width, u16 Height, u8* Data,u8 Num, u16 Color);
 
 void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color);                       // 显示字符
 void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color);               // 显示数字

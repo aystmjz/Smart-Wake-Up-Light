@@ -146,6 +146,46 @@ void PWM_AdjustAlarm(AlarmTypeDef *Alarm, uint8_t *Mod, int8_t Dir)
         break;
     }
 }
+
+void PWM_ChartData(uint8_t *Data, uint8_t Num, uint8_t *Mod)
+{
+    uint16_t temp;
+    for (uint8_t i = 0; i < Num; i++)
+    {
+        switch (*Mod)
+        {
+        case 1:
+            temp = PWM_MOD1_CALC(PWM_MOD1 * 60 / (float)Num * i);
+            break;
+        case 2:
+            temp = PWM_MOD2_CALC(PWM_MOD2 * 60 / (float)Num * i);
+            break;
+        case 3:
+            temp = PWM_MOD3_CALC(PWM_MOD3 * 60 / (float)Num * i);
+            break;
+        case 4:
+            temp = PWM_MOD4_CALC(PWM_MOD4 * 60 / (float)Num * i);
+            break;
+        case 5:
+            temp = PWM_MOD5_CALC(PWM_MOD5 * 60 / (float)Num * i);
+            break;
+        case 6:
+            temp = PWM_MOD6_CALC(PWM_MOD6 * 60 / (float)Num * i);
+            break;
+        case 7:
+            temp = PWM_MOD7_CALC(PWM_MOD7 * 60 / (float)Num * i);
+            break;
+        default:
+            temp = PWM_MOD_TEST_CALC(PWM_MOD_TEST * 60 / (float)Num * i);
+            break;
+        }
+        if (temp > 100)
+            Data[i] = 100;
+        else
+            Data[i] = temp;
+    }
+}
+
 void PWM_Judge(uint8_t *Mod)
 {
     if (*Mod < 1)

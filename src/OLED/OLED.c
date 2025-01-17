@@ -456,6 +456,21 @@ void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode)
     }
 }
 
+void OLED_DrawChart(u16 Xstart, u16 Ystart, u16 Width, u16 Height, u8 *Data, u8 Num, u16 Color)
+{
+    float x_gap, y_gap;
+    if (Width > OLED_W)
+        Width = OLED_W;
+    if (Height > OLED_H)
+        Width = OLED_H;
+    x_gap = Width / (float)Num;
+    y_gap = Height / (float)100;
+    for (u8 i = 0; i < Num - 1; i++)
+    {
+        OLED_DrawLine(Xstart + i * x_gap, Ystart + Height - Data[i] * y_gap, Xstart + (i + 1) * x_gap, Ystart + Height - Data[i + 1] * y_gap, Color);
+    }
+}
+
 /**
  * @brief 显示字符
  * @param X 字符显示的起始X坐标

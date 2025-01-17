@@ -41,6 +41,7 @@ void PWM_Disable(void);
 void PWM_Set(uint16_t Percent);
 void PWM_Run(uint8_t *Mod);
 void PWM_AdjustAlarm(AlarmTypeDef *Alarm, uint8_t *Mod, int8_t Dir);
+void PWM_ChartData(uint8_t *Data, uint8_t Num, uint8_t *Mod);
 void PWM_Judge(uint8_t *Mod);
 char *Get_PWM_Str(uint8_t *Mod);
 
