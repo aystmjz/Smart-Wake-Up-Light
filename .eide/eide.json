@@ -108,7 +108,8 @@
           "src/Hardware",
           "src/OLED",
           "lib/STM32F10x_StdPeriph_Driver",
-          "lib/STM32F10x_StdPeriph_Driver/inc"
+          "lib/STM32F10x_StdPeriph_Driver/inc",
+          "lib/cJSON"
         ],
         "libList": [],
         "defineList": [

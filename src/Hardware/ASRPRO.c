@@ -63,6 +63,11 @@ uint8_t ASRPRO_Power_Turn(void)
     }
 }
 
+uint8_t ASRPRO_Get_State(void)
+{
+    return !GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_8);
+}
+
 uint8_t ASRPRO_Get_CMD(void)
 {
     uint8_t temp;

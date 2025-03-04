@@ -14,8 +14,12 @@
 #include "W25Q128.h"
 #include "PWR.h"
 #include "BT24.h"
+#include "ADC.h"
+#include "Battery.h"
 
 uint8_t BUZ_Flag = 1;
+uint8_t WakeUp_Flag = 0;
+uint8_t LowPower_Now = 0;
 SHT30TypeDef SHT;
 AlarmTypeDef Alarm = {.Num = Alarm_1};
 SettingTypeDef Set;
@@ -335,6 +339,10 @@ void KeyNumber_Set_Other()
 			break;
 		case 2:
 			W25Q128_WriteSetting(&Set);
+			if (LowPower_Now != Set.LowPowerEnable)
+			{
+				NVIC_SystemReset();
+			}
 			EPD_WhiteScreen_White();
 			break;
 		}
@@ -410,6 +418,7 @@ int main()
 	uint16_t DID = 0;
 
 	Key_Init();
+	AD_Init();
 	Encoder_Init();
 	OLED_Init();
 	SHT30_Init();
@@ -428,25 +437,43 @@ int main()
 		W25Q128_ReadSetting(&Set);
 		PWM_AdjustAlarm(&Alarm, &Set.PwmMod, 1);
 	}
+	LowPower_Now = Set.LowPowerEnable;
 
-	if (!Set.LowPowerEnable)
-	{
-		LED_Init();
-		PWM_Init();
-		LowPowerOFF();
-		Debug_printf("LowPower OFF\r\n");
-	}
-	else
+	Battery_UpdateLevel(AD_GetValue());
+	if (LowPower_Now || !Battery_GetState())
 	{
 		PWR_Init();
 		LowPowerON();
 		EXTI5_Init();
 		Debug_printf("LowPower ON\r\n");
+		LowPower_Now = 1;
+	}
+	else
+	{
+		LED_Init();
+		PWM_Init();
+		LowPowerOFF();
+		Debug_printf("LowPower OFF\r\n");
+		if (Set.VoiceEnable)
+			ASRPRO_Power_ON();
 	}
 
 	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
 	Debug_printf("Init OK\r\n");
+
+	// int16_t AD_Value = 0;
+	// float Voltage;
+	// while (1)
+	// {
+	// 	Delay_ms(100);
+	// 	AD_Value = AD_GetValue();
+	// 	Battery_UpdateLevel(AD_Value);
+	// 	Voltage = (float)AD_Value / 4095.0 * 3.3;
+	// 	sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value * 2, Voltage * 2, Battery_GetLevel(), Battery_GetState());
+	// 	Debug_printf(Debug_str);
+	// 	// NVIC_SystemReset();
+	// }
 
 	while (1)
 	{
@@ -458,8 +485,7 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				Set.VoiceEnable=!Set.VoiceEnable;
-				ASRPRO_Power_Control(Set.VoiceEnable);
+				WakeUp_Flag = 1;
 				break;
 			case 2:
 				EPD_WeakUp();
@@ -473,15 +499,21 @@ int main()
 		if (Refresh_Flag)
 		{
 			SHT30_GetData(&SHT);
+			Battery_UpdateLevel(AD_GetValue());
+			if ((!LowPower_Now && !Battery_GetState()) || (LowPower_Now && Battery_GetState()))
+			{
+				NVIC_SystemReset();
+			}
 
 			if (BT24_GetStatus())
 				BT24_PubData(&PubData);
 
+			OLED_Clear(WHITE);
 			OLED_Printf(Time_Hour < 10 ? 62 : 10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
-			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), Set.LowPowerEnable ? "叶" : "  ", Set.VoiceEnable ? "助 " : "  ");
-			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable) ? "音" : " ");
+			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), LowPower_Now ? "叶" : "  ", ASRPRO_Get_State() ? "助 " : "  ");
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !LowPower_Now) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable) ? "音" : " ");
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
@@ -522,7 +554,19 @@ int main()
 		KeyNum = Key_GetNumber();
 		CmdNum = ASRPRO_Get_CMD();
 
-		if (Set.LowPowerEnable)
+		if (LowPower_Now && ASRPRO_Get_State())
+		{
+			ASRPRO_Power_OFF();
+			Refresh_Flag = 1;
+		}
+
+		if (WakeUp_Flag && !ASRPRO_Get_State())
+		{
+			ASRPRO_Power_ON();
+			Refresh_Flag = 1;
+		}
+
+		if (LowPower_Now && !BT24_GetStatus() && !WakeUp_Flag)
 		{
 			Debug_printf("Power OFF\r\n");
 			Delay_ms(10);
@@ -537,7 +581,7 @@ int main()
 
 		if (EXTI0_Get_Flag())
 		{
-			if (DS3231_ReadStatus(&Alarm) && !Set.LowPowerEnable)
+			if (DS3231_ReadStatus(&Alarm) && !LowPower_Now)
 			{
 				EPD_WeakUp();
 				EPD_WhiteScreen_White();
@@ -571,7 +615,6 @@ int main()
 					W25Q128_ReadSetting(PubData.Set);
 					PWM_AdjustAlarm(PubData.Alarm, &PubData.Set->PwmMod, 1);
 					ASRPRO_Power_Control(PubData.Set->VoiceEnable);
-					OLED_Clear(WHITE);
 					Refresh_Flag = 1;
 					break;
 				case 1:
@@ -611,7 +654,7 @@ int main()
 
 void TIM2_IRQHandler(void) // 1ms
 {
-	static uint16_t Key_Counter = 0, Buzzer_Counter = 0;
+	static uint16_t Key_Counter = 0, Buzzer_Counter = 0, WakeUp_Counter = 0;
 	static int16_t Encoder_Last = 0;
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
@@ -643,6 +686,15 @@ void TIM2_IRQHandler(void) // 1ms
 			BUZ_Flag = 0;
 			Buzzer_Counter = 200;
 			Buzzer_ON();
+		}
+		if (WakeUp_Flag == 1)
+		{
+			WakeUp_Counter++;
+		}
+		if (WakeUp_Counter >= 60000)
+		{
+			WakeUp_Counter = 0;
+			WakeUp_Flag = 0;
 		}
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 	}

@@ -42,6 +42,7 @@ typedef struct
     uint8_t MuzicEnable;
     uint8_t BuzzerEnable;
     uint8_t LowPowerEnable;
+    uint8_t VoiceEnable;
     uint8_t WeekEnable[7];
 } SettingTypeDef;
 
