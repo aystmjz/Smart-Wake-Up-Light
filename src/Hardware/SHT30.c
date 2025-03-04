@@ -1,7 +1,4 @@
 #include "SHT30.h"
-
-SHT30_DataTypeDef SHT;
-
 void SHT30_WriteCommand(uint16_t Command)
 {
     SHT30_I2C_Start();
@@ -51,21 +48,21 @@ void SHT30_Reset(void)
     SHT30_WriteCommand(SHT30_SOFT_RESET_CMD);
 }
 
-uint8_t SHT30_GetData(void)
+uint8_t SHT30_GetData(SHT30TypeDef *SHT)
 {
     uint16_t t_ticks, rh_ticks;
     SHT30_WriteCommand(SHT30_MEAS_CLOCKNOSTR_H_CMD);
     Delay_ms(40);
-    SHT30_MultiReadByte(SHT.raw_data, 6);
-    t_ticks = ((uint16_t)SHT.raw_data[0] << 8) | SHT.raw_data[1];
-    rh_ticks = ((uint16_t)SHT.raw_data[3] << 8) | SHT.raw_data[4];
-    SHT.Temp = -45 + 175 * (float)t_ticks / 65535;
-    SHT.Hum = 100 * (float)rh_ticks / 65535;
-    if (SHT.Hum > 100)
-        SHT.Hum = 100;
-    if (SHT.Hum < 0)
-        SHT.Hum = 0;
-    if (~SHT.raw_data[0] || ~SHT.raw_data[3])
+    SHT30_MultiReadByte(SHT->raw_data, 6);
+    t_ticks = ((uint16_t)SHT->raw_data[0] << 8) | SHT->raw_data[1];
+    rh_ticks = ((uint16_t)SHT->raw_data[3] << 8) | SHT->raw_data[4];
+    SHT->Temp = -45 + 175 * (float)t_ticks / 65535;
+    SHT->Hum = 100 * (float)rh_ticks / 65535;
+    if (SHT->Hum > 100)
+        SHT->Hum = 100;
+    if (SHT->Hum < 0)
+        SHT->Hum = 0;
+    if (~SHT->raw_data[0] || ~SHT->raw_data[3])
         return 1;
     else
         return 0;

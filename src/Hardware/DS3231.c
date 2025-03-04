@@ -133,12 +133,9 @@ void DS3231_ResetAlarm(void)
 	DS3231_WriteByte(DS3231_STATUS, 0x00);
 }
 
-void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm)
+void DS3231_ReadAlarm(AlarmTypeDef *Alarm)
 {
 	uint8_t Temp[3];
-	DS3231_I2C_Init();
-	DS3231_ResetAlarm();
-	DS3231_ReadTime(Time);
 
 	Temp[0] = DS3231_ReadByte(DS3231_CONTROL);
 	if (Alarm->Num == Alarm_1)
@@ -164,6 +161,15 @@ void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm)
 		Alarm->Week = Temp[2] & 0x0F;
 	else
 		Alarm->Day = ((Temp[2] & 0x30) >> 4) * 10 + (Temp[2] & 0x0F);
+}
+
+void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm)
+{
+	
+	DS3231_I2C_Init();
+	DS3231_ResetAlarm();
+	DS3231_ReadTime(Time);
+	DS3231_ReadAlarm(Alarm);
 }
 
 void TimeJudge(struct tm *Time)

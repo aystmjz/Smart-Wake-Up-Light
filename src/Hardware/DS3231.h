@@ -42,6 +42,7 @@ typedef struct
 void DS3231_WriteByte(uint8_t WordAddress, uint8_t Data);
 uint8_t DS3231_ReadByte(uint8_t WordAddress);
 void DS3231_ReadTime(struct tm *Time);
+void DS3231_ReadAlarm(AlarmTypeDef *Alarm);
 uint8_t DS3231_ReadStatus(AlarmTypeDef *Alarm);
 time_t DS3231_GetTimeStamp(struct tm *Time);
 void DS3231_WriteTime(struct tm *Time);
