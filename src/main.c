@@ -13,11 +13,15 @@
 #include "EXTI.h"
 #include "W25Q128.h"
 #include "PWR.h"
+#include "BT24.h"
 
 uint8_t BUZ_Flag = 1;
+SHT30TypeDef SHT;
 AlarmTypeDef Alarm = {.Num = Alarm_1};
 SettingTypeDef Set;
 struct tm Time;
+PubDataTypeDef PubData = {.SHT = &SHT, .Alarm = &Alarm, .Set = &Set, .Time = &Time};
+
 void Wait_Key()
 {
 	uint8_t KeyNum;
@@ -61,7 +65,7 @@ void KeyNumber_Set_Clock()
 			sprintf((char *)Time_Day_Str, "%d", Time_Day);
 
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
-			OLED_Printf(Time_Hour ? 10 : 62, 4, OLED_52X104, BLACK, "%d", Time_Hour);
+			OLED_Printf(Time_Hour < 10 ? 62 : 10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
 			if (Time_Choose_Flag < 0)
 			{
@@ -398,11 +402,12 @@ void LowPowerOFF(void)
 
 int main()
 {
-	uint8_t Refresh_Flag = 1, TIME_Judge = 0, ASRPRO_Status = 0;
+	char Json_Str[BT24_UART_REC_LEN];
+	char Extra[50];
+	uint8_t Refresh_Flag = 1, TIME_Judge = 0;
 	uint8_t KeyNum, CmdNum;
 	uint8_t MID = 0;
 	uint16_t DID = 0;
-	char SendBuf[20];
 
 	Key_Init();
 	Encoder_Init();
@@ -416,8 +421,8 @@ int main()
 	DS3231_Init(&Time, &Alarm);
 
 	W25Q128_ReadID(&MID, &DID);
-	sprintf(SendBuf, "MID=%d DID=%d\r\n", MID, DID);
-	Debug_printf(SendBuf);
+	sprintf(Debug_str, "MID=%d DID=%d\r\n", MID, DID);
+	Debug_printf(Debug_str);
 	if (MID)
 	{
 		W25Q128_ReadSetting(&Set);
@@ -453,7 +458,8 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				ASRPRO_Status = ASRPRO_Power_Turn();
+				Set.VoiceEnable=!Set.VoiceEnable;
+				ASRPRO_Power_Control(Set.VoiceEnable);
 				break;
 			case 2:
 				EPD_WeakUp();
@@ -466,13 +472,16 @@ int main()
 
 		if (Refresh_Flag)
 		{
-			SHT30_GetData();
+			SHT30_GetData(&SHT);
 
-			OLED_Printf(Time_Hour ? 10 : 62, 4, OLED_52X104, BLACK, "%d", Time_Hour);
+			if (BT24_GetStatus())
+				BT24_PubData(&PubData);
+
+			OLED_Printf(Time_Hour < 10 ? 62 : 10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
-			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), Set.LowPowerEnable ? "叶" : "  ", ASRPRO_Status ? "助 " : "  ");
-			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable && !Set.BuzzerEnable) ? "音" : " ");
+			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), Set.LowPowerEnable ? "叶" : "  ", Set.VoiceEnable ? "助 " : "  ");
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !Set.LowPowerEnable) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable) ? "音" : " ");
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
@@ -513,6 +522,19 @@ int main()
 		KeyNum = Key_GetNumber();
 		CmdNum = ASRPRO_Get_CMD();
 
+		if (Set.LowPowerEnable)
+		{
+			Debug_printf("Power OFF\r\n");
+			Delay_ms(10);
+			PWR_STOP();
+			Debug_printf("Power ON\r\n");
+		}
+		else
+		{
+			Delay_ms(1000);
+		}
+		DS3231_ReadTime(&Time);
+
 		if (EXTI0_Get_Flag())
 		{
 			if (DS3231_ReadStatus(&Alarm) && !Set.LowPowerEnable)
@@ -529,23 +551,42 @@ int main()
 			DS3231_ResetAlarm();
 		}
 
-		if (Set.LowPowerEnable)
-		{
-			Debug_printf("Power OFF\r\n");
-			Delay_ms(10);
-			PWR_STOP();
-			Debug_printf("Power ON\r\n");
-		}
-		else
-		{
-			Delay_ms(1000);
-		}
-		DS3231_ReadTime(&Time);
-
 		if (EXTI5_Get_Flag())
 		{
 			Debug_printf("EXTI5\r\n");
 			Delay_ms(3000);
+		}
+
+		if (BT24_GetStatus())
+		{
+			if (BT24_FindValidJson((char *)BT24RxBuffer, BT24_UART_REC_LEN, Json_Str))
+			{
+				switch (BT24_ParseCmd(Json_Str))
+				{
+				case 0:
+					BT24_ParseData(Json_Str, &PubData, Extra);
+					WriteAlarm(PubData.Alarm, &PubData.Set->PwmMod);
+					W25Q128_WriteSetting(PubData.Set);
+					DS3231_ReadAlarm(PubData.Alarm);
+					W25Q128_ReadSetting(PubData.Set);
+					PWM_AdjustAlarm(PubData.Alarm, &PubData.Set->PwmMod, 1);
+					ASRPRO_Power_Control(PubData.Set->VoiceEnable);
+					OLED_Clear(WHITE);
+					Refresh_Flag = 1;
+					break;
+				case 1:
+
+					break;
+				case 2:
+
+					break;
+
+				default:
+					break;
+				}
+
+				BT24_PubData(&PubData);
+			}
 		}
 
 		if (CmdNum)

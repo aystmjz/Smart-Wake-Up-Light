@@ -25,7 +25,13 @@ int fputc(int ch, FILE *f) // 重定义fputc函数
 
 #endif
 
-/// @brief 初始化串口1(Debug)
+uint16_t ASRPRORxCounter;
+uint16_t BT24RxCounter;
+uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
+uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
+char Debug_str[DEBUG_BUFF_LEN];
+
+/// @brief 初始化串口1(BT24)
 /// @param bound 波特率
 void uart1_init(uint32_t bound)
 {
@@ -60,8 +66,6 @@ void uart1_init(uint32_t bound)
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 	USART_Cmd(USART1, ENABLE);
 }
-
-uint8_t RxCounter, RxBuffer[UART_REC_LEN]; // 接收缓冲
 
 /// @brief 初始化串口2(ASRPRO)
 /// @param bound 波特率
@@ -107,8 +111,10 @@ void Uart_Init(uint32_t bound)
 	uart2_init(bound);
 }
 
-// Debug串口打印
-void Debug_SendStr(char *SendBuf)
+// 串口1(BT24)-----------------------------------------------------
+
+// BT24串口打印
+void BT24_SendStr(char *SendBuf)
 {
 	while (*SendBuf)
 	{
@@ -120,68 +126,48 @@ void Debug_SendStr(char *SendBuf)
 	}
 }
 
-// ASRPRO串口发送一个字节数据
-void ASRPRO_Send_byte(uint8_t byte)
+void BT24_printf(char *SendBuf)
 {
-	while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET)
-		; // 等待发送完成
-	USART2->DR = byte;
+	BT24_SendStr(SendBuf);
 }
 
-// ASRPRO串口发送多字节数据
-void ASRPRO_Send_bytes(uint8_t *bytes, uint8_t length)
+void BT24_Clear_Buff(void)
 {
-	uint8_t i = 0;
-	while (i < length)
+	BT24RxCounter = 0;
+	for (uint8_t i = 0; i < BT24_UART_REC_LEN; i++)
 	{
-		ASRPRO_Send_byte(bytes[i++]);
+		BT24RxBuffer[i] = 0;
 	}
 }
 
-unsigned char UART_Check(unsigned char length, unsigned char *p)
+// BT24串口中断
+void USART1_IRQHandler(void)
 {
-	unsigned int Temp = 0;
-	unsigned char i;
-	for (i = 1; i <= length; i++)
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
-		Temp += p[i];
+		BT24RxBuffer[BT24RxCounter++] = USART_ReceiveData(USART1);
+		if (BT24RxBuffer[BT24RxCounter - 1] == '}')
+		{
+			if (BT24RxBuffer[BT24RxCounter - 2] == '"')
+			{
+				BT24RxCounter = 0;
+			}
+		}
+		BT24RxCounter %= BT24_UART_REC_LEN;
 	}
-	if ((((~Temp + 1) & 0x00ff) == p[length + 2]) && ((~Temp + 1) >> 8) == p[length + 1])
-		return 1;
-	else
-		return 0;
 }
+
+// 串口2(ASRPRO)-----------------------------------------------------
 
 void ASRPRO_Clear_Buff(void)
 {
-	RxCounter = 0;
-	for (uint8_t i = 0; i < UART_REC_LEN; i++)
+	ASRPRORxCounter = 0;
+	for (uint8_t i = 0; i < ASRPRO_UART_REC_LEN; i++)
 	{
-		RxBuffer[i] = 0;
+		ASRPRORxBuffer[i] = 0;
 	}
 }
 
-uint8_t ASRPRO_Get_CMD(void)
-{
-	uint8_t temp;
-	for (uint8_t i = 0; i < UART_REC_LEN; i++)
-	{
-		if (RxBuffer[i] == 0xaa && RxBuffer[(i + 1) % UART_REC_LEN] == 0x00)
-		{
-			temp = RxBuffer[(i + 2) % UART_REC_LEN];
-			ASRPRO_Clear_Buff();
-			return temp;
-		}
-	}
-	return 0;
-}
-// char SendBuf[20];
-// sprintf(SendBuf, "Temp=%d\n", Temp);
-// Debug_printf(SendBuf);
-void Debug_printf(char *SendBuf)
-{
-	Debug_SendStr(SendBuf);
-}
 void ASRPRO_printf(const char *format, ...)
 {
 	va_list args;
@@ -195,23 +181,16 @@ void USART2_IRQHandler(void)
 {
 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	{
-		RxBuffer[RxCounter++] = USART_ReceiveData(USART2);
+		ASRPRORxBuffer[ASRPRORxCounter++] = USART_ReceiveData(USART2);
 		while ((USART1->SR & 0X40) == 0)
 		{
 		} // 等待发送完成
-		USART1->DR = (uint8_t)RxBuffer[RxCounter - 1];
-		RxCounter %= UART_REC_LEN;
+		USART1->DR = (uint8_t)ASRPRORxBuffer[ASRPRORxCounter - 1];
+		ASRPRORxCounter %= ASRPRO_UART_REC_LEN;
 	}
 }
 
-// Debug串口中断
-void USART1_IRQHandler(void)
+void Debug_printf(char *SendBuf)
 {
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-	{
-		while ((USART2->SR & 0X40) == 0)
-		{
-		} // 等待发送完成
-		USART2->DR = (uint8_t)USART_ReceiveData(USART1);
-	}
+	BT24_printf(SendBuf);
 }
