@@ -6,7 +6,8 @@ static uint8_t BatteryState = 0;
 uint8_t Battery_calculate(uint16_t battery_ADC)
 {
 	uint8_t batteryLevel;
-	battery_ADC -= 1050;
+	battery_ADC -= Battery_FULL-4160;
+	battery_ADC -= battery_ADC % 4;
 	if(battery_ADC>4160)return 100;
 	if(battery_ADC<3580)return 0;
 	switch (battery_ADC)

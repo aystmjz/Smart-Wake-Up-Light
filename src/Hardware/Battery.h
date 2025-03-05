@@ -2,6 +2,7 @@
 #define __BATTERY_H
 #include "stm32f10x.h"
 
+#define Battery_FULL 5174
 #define Battery_CHARGE 5200
 #define Battery_DC 5450
 #define BATTERY_MULT 2
