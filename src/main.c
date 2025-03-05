@@ -224,7 +224,7 @@ void KeyNumber_Set_Alarm()
 					}
 			}
 
-			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 灯%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "音" : "  ", Set.MuzicEnable ? "对" : "错", Buzzer_Flag ? "符" : "  ", Set.BuzzerEnable ? "对" : "错");
+			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 灯%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "乐" : "  ", Set.MuzicEnable ? "对" : "错", Buzzer_Flag ? "符" : "  ", Set.BuzzerEnable ? "对" : "错");
 
 			Alarm_Choose_Flag++;
 			if (Alarm_Choose_Flag == 1)
@@ -311,7 +311,7 @@ void KeyNumber_Set_Other()
 					break;
 				}
 			}
-			OLED_Printf(8, OLED_H / 2, OLED_8X16, BLACK, "%s叶%s", LowPower_Flag ? "低功耗模式" : "          ", Set.LowPowerEnable ? "对" : "错");
+			OLED_Printf(8, OLED_H / 2, OLED_8X16, BLACK, "%s麦%s", LowPower_Flag ? "语音助手常开" : "            ", Set.VoiceEnable ? "对" : "错");
 
 			Other_Choose_Flag++;
 			if (Other_Choose_Flag == 1)
@@ -323,7 +323,7 @@ void KeyNumber_Set_Other()
 				switch (Other_Choose)
 				{
 				case 0:
-					Set.LowPowerEnable = !Set.LowPowerEnable;
+					Set.VoiceEnable = !Set.VoiceEnable;
 					break;
 				}
 			}
@@ -339,10 +339,6 @@ void KeyNumber_Set_Other()
 			break;
 		case 2:
 			W25Q128_WriteSetting(&Set);
-			if (LowPower_Now != Set.LowPowerEnable)
-			{
-				NVIC_SystemReset();
-			}
 			EPD_WhiteScreen_White();
 			break;
 		}
@@ -360,9 +356,9 @@ void KeyNumber_Set()
 	OLED_DrawLine(76, 50, OLED_W - 76, 50, BLACK);
 	OLED_Display(Image_BW, Part);
 
-	Delay_ms(1000);
 	KeyNum = Key_Clear();
-	while (!KeyNum)
+	EncoderNum = Encoder_Get_Div4();
+	while (KeyNum != 1)
 	{
 		KeyNum = Key_GetNumber();
 		EncoderNum = Encoder_Get_Div4();
@@ -437,10 +433,9 @@ int main()
 		W25Q128_ReadSetting(&Set);
 		PWM_AdjustAlarm(&Alarm, &Set.PwmMod, 1);
 	}
-	LowPower_Now = Set.LowPowerEnable;
 
 	Battery_UpdateLevel(AD_GetValue());
-	if (LowPower_Now || !Battery_GetState())
+	if (!Battery_GetState())
 	{
 		PWR_Init();
 		LowPowerON();
@@ -454,38 +449,40 @@ int main()
 		PWM_Init();
 		LowPowerOFF();
 		Debug_printf("LowPower OFF\r\n");
+		LowPower_Now = 0;
 		if (Set.VoiceEnable)
 			ASRPRO_Power_ON();
 	}
-
+	KeyNum = Key_GetNumber();
 	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
 	Debug_printf("Init OK\r\n");
 
-	// int16_t AD_Value = 0;
-	// float Voltage;
-	// while (1)
-	// {
-	// 	Delay_ms(100);
-	// 	AD_Value = AD_GetValue();
-	// 	Battery_UpdateLevel(AD_Value);
-	// 	Voltage = (float)AD_Value / 4095.0 * 3.3;
-	// 	sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value * 2, Voltage * 2, Battery_GetLevel(), Battery_GetState());
-	// 	Debug_printf(Debug_str);
-	// 	// NVIC_SystemReset();
-	// }
+	int16_t AD_Value = 0;
+	float Voltage;
+	while (1)
+	{
+		Delay_ms(2000);
+		AD_Value = AD_GetValue();
+		Battery_UpdateLevel(AD_Value);
+		Voltage = (float)AD_Value / 4095.0 * 3.3;
+		sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value * 2, Voltage * 2, Battery_GetLevel(), Battery_GetState());
+		Debug_printf(Debug_str);
+	}
 
 	while (1)
 	{
-		KeyNum = Key_GetNumber();
+
 		if (KeyNum)
 		{
 			BUZ_Flag = 0;
-			Encoder_Clear();
 			switch (KeyNum)
 			{
 			case 1:
-				WakeUp_Flag = 1;
+				Key_Clear();
+				Delay_ms(1000);
+				if (Key_GetNumber() == 1)
+					WakeUp_Flag = 1;
 				break;
 			case 2:
 				EPD_WeakUp();
@@ -502,6 +499,8 @@ int main()
 			Battery_UpdateLevel(AD_GetValue());
 			if ((!LowPower_Now && !Battery_GetState()) || (LowPower_Now && Battery_GetState()))
 			{
+				Debug_printf("Change LowPowerMode,SystemReset\r\n");
+				Delay_ms(100);
 				NVIC_SystemReset();
 			}
 
@@ -512,8 +511,33 @@ int main()
 			OLED_Printf(Time_Hour < 10 ? 62 : 10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
 			OLED_Printf(104 + 10, 0, OLED_52X104, BLACK, ":");
 			OLED_Printf(104 + 10 + 20, 4, OLED_52X104, BLACK, "%02d", Time_Min);
-			OLED_Printf(16, 0, OLED_8X16, BLACK, "%d年%d月%d日  周%s  %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), LowPower_Now ? "叶" : "  ", ASRPRO_Get_State() ? "助 " : "  ");
-			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !LowPower_Now) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable) ? "音" : " ");
+			OLED_Printf(8, 0, OLED_8X16, BLACK, "%d年%d月%d日 周%s %s %s", Time_Year, Time_Mon, Time_Day, Get_Week_Str(Time_Week), LowPower_Now ? "叶" : "  ", ASRPRO_Get_State() ? "麦 " : "  ");
+			switch (Battery_GetState())
+			{
+			case 0:
+				OLED_Printf(232, 5, OLED_6X8, BLACK, "%d%%", Battery_GetLevel() < 100 ? Battery_GetLevel() : 99);
+				if (Battery_GetLevel() < 20)
+					OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "零");
+				else if (Battery_GetLevel() < 40)
+					OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "壹");
+				else if (Battery_GetLevel() < 60)
+					OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "贰");
+				else if (Battery_GetLevel() < 80)
+					OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "叁");
+				else
+					OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "肆");
+				break;
+			case 1:
+				OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "肆");
+				OLED_Printf(215 + 16, 2, OLED_8X16, BLACK, "%s", "电");
+				break;
+			case 2:
+				OLED_Printf(215, 0, OLED_8X16, BLACK, "%s", "肆插");
+				break;
+			default:
+				break;
+			}
+			OLED_Printf(Alarm.Hour > 9 ? 8 : 16, 112, OLED_8X16, BLACK, "%.2f℃ %.0f%% %s%d:%02d 灯%smin %s", SHT.Temp, SHT.Hum, (Alarm.Enable && !LowPower_Now) ? "铃" : "否", Alarm.Hour, Alarm.Min, Get_PWM_Str(&Set.PwmMod), (Set.MuzicEnable) ? "乐" : " ");
 			OLED_DrawLine(0, 20, LINE_END, 20, BLACK);
 			OLED_DrawLine(0, 110, LINE_END, 110, BLACK);
 			OLED_DrawLine(LINE_END, 0, LINE_END, OLED_H, BLACK);
@@ -554,16 +578,18 @@ int main()
 		KeyNum = Key_GetNumber();
 		CmdNum = ASRPRO_Get_CMD();
 
-		if (LowPower_Now && ASRPRO_Get_State())
+		if (((LowPower_Now || !Set.VoiceEnable) && !WakeUp_Flag) && ASRPRO_Get_State())
 		{
 			ASRPRO_Power_OFF();
 			Refresh_Flag = 1;
+			Debug_printf("ASRPRO_Power_OFF\r\n");
 		}
 
-		if (WakeUp_Flag && !ASRPRO_Get_State())
+		if ((WakeUp_Flag || (!LowPower_Now && Set.VoiceEnable)) && !ASRPRO_Get_State())
 		{
 			ASRPRO_Power_ON();
 			Refresh_Flag = 1;
+			Debug_printf("ASRPRO_Power_ON\r\n");
 		}
 
 		if (LowPower_Now && !BT24_GetStatus() && !WakeUp_Flag)
@@ -598,7 +624,12 @@ int main()
 		if (EXTI5_Get_Flag())
 		{
 			Debug_printf("EXTI5\r\n");
-			Delay_ms(3000);
+			Delay_ms(100);
+			Key_Clear();
+			Delay_ms(2000);
+			KeyNum = Key_GetNumber();
+			if (KeyNum == 1)
+				WakeUp_Flag = 1;
 		}
 
 		if (BT24_GetStatus())
