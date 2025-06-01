@@ -1,7 +1,7 @@
 #ifndef __KEY_H
 #define __KEY_H
 
-#include "stm32f10x.h"                  // Device header
+#include "sys.h"
 #include "Delay.h"
 #include "Buzzer.h"
 

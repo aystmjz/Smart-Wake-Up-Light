@@ -1,7 +1,7 @@
 #ifndef __ASRPRO_H
 #define __ASRPRO_H
 
-#include "stm32f10x.h"
+#include "sys.h"
 #include "UART.h"
 #include "Delay.h"
 

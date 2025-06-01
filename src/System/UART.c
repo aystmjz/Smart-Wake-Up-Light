@@ -35,6 +35,8 @@ char Debug_str[DEBUG_BUFF_LEN];
 /// @param bound 波特率
 void uart1_init(uint32_t bound)
 {
+#if DEBUG_MODE == 4
+#else
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -65,6 +67,7 @@ void uart1_init(uint32_t bound)
 	USART_Init(USART1, &USART_InitStructure);
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 	USART_Cmd(USART1, ENABLE);
+#endif
 }
 
 /// @brief 初始化串口2(ASRPRO)
@@ -182,15 +185,19 @@ void USART2_IRQHandler(void)
 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	{
 		ASRPRORxBuffer[ASRPRORxCounter++] = USART_ReceiveData(USART2);
+#if DEBUG_MODE == 1 || DEBUG_MODE == 3
 		while ((USART1->SR & 0X40) == 0)
 		{
 		} // 等待发送完成
 		USART1->DR = (uint8_t)ASRPRORxBuffer[ASRPRORxCounter - 1];
+#endif
 		ASRPRORxCounter %= ASRPRO_UART_REC_LEN;
 	}
 }
 
 void Debug_printf(char *SendBuf)
 {
+#if DEBUG_MODE == 1 || DEBUG_MODE == 2
 	BT24_printf(SendBuf);
+#endif
 }

@@ -1,6 +1,6 @@
 #ifndef __BATTERY_H
 #define __BATTERY_H
-#include "stm32f10x.h"
+#include "sys.h"
 
 #define Battery_FULL 5174
 #define Battery_CHARGE 5200

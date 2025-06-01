@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stm32f10x.h"
+#include "sys.h"
 #include "UART.h"
 #include "Delay.h"
 #include "W25Q128.h"

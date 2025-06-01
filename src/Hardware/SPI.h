@@ -1,7 +1,6 @@
 #ifndef __SPI_H
 #define __SPI_H
 
-#include "stm32f10x.h"                  // Device header
 #include "sys.h"
 
 #define W25Q128_SPI_SS_SET PBout(12)

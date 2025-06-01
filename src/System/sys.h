@@ -2,6 +2,9 @@
 #define __SYS_H
 #include "stm32f10x.h"
 
+// 设置当前调试模式 0:关闭调试 1:正常调试 2:STM32调试 3:ASRPRO调试 4:BT24-T调试
+#define DEBUG_MODE 1
+
 //位带操作,实现51类似的GPIO控制功能
 //具体实现思想,参考<<CM3权威指南>>第五章(87页~92页).
 //IO口操作宏定义

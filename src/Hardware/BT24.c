@@ -14,14 +14,22 @@ void BT24_Init(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
+#if DEBUG_MODE == 2 || DEBUG_MODE == 3
+    GPIO_SetBits(GPIOB, GPIO_Pin_10);
+#else
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+#endif
 }
 
 void BT24_Reset(void)
 {
+#if DEBUG_MODE == 2 || DEBUG_MODE == 3
+    GPIO_SetBits(GPIOB, GPIO_Pin_10);
+#else
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
     Delay_ms(20);
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+#endif
 }
 
 uint8_t BT24_GetStatus(void)
