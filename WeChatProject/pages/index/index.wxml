@@ -1,0 +1,98 @@
+<view class="page-container">
+  <!-- 头部 -->
+  <view class="header-container">
+    <view class="header-title">{{connectState}}</view>
+  </view>
+
+  <!-- 数据卡片 -->
+  <view class="data-grid">
+    <!-- 温度 -->
+    <view class="data-card">
+      <image class="data-icon" src="/static/temp.png" />
+      <view class="data-content">
+        <view class="data-label">温度</view>
+        <view class="data-value">{{ Temp }}℃</view>
+      </view>
+    </view>
+
+    <!-- 湿度 -->
+    <view class="data-card">
+      <image class="data-icon" src="/static/hum.png" />
+      <view class="data-content">
+        <view class="data-label">湿度</view>
+        <view class="data-value">{{ Hum }}%</view>
+      </view>
+    </view>
+
+    <!-- 设备控制 -->
+    <view class="data-card">
+      <image class="data-icon" src="/static/fan.png" />
+      <view class="data-content">
+        <view class="data-label">空调</view>
+        <view class="data-value">
+          <switch checked="{{ Fan }}" bindchange="onFanChange" color="#3d7ef9" />
+        </view>
+      </view>
+    </view>
+
+    <view class="data-card">
+      <image class="data-icon" src="/static/led.png" />
+      <view class="data-content">
+        <view class="data-label">台灯</view>
+        <view class="data-value">
+          <switch checked="{{ Led }}" bindchange="onLedChange" color="#3d7ef9" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 星期选择 -->
+    <view class="setting-card weekdays-picker">
+      <checkbox-group bindchange="onWeekdaysChange">
+        <view wx:for="{{['mon','tue','wed','thu','fri','sat','sun']}}" wx:key="index" class="weekday-item">
+          <checkbox value="{{item}}" checked="{{selectedDays[item]}}" class="weekday-checkbox">
+            {{'周' + ['一','二','三','四','五','六','日'][index]}}
+          </checkbox>
+        </view>
+      </checkbox-group>
+    </view>
+
+    <view class="settings-section">
+      <!-- 设置项 -->
+
+      <view class="setting-card">
+        <text class="setting-label">设置时间</text>
+        <picker mode="time" start="05:00" end="12:00" bindchange="onTimeChange">
+          <view class="picker">{{alarmTime}}</view>
+        </picker>
+      </view>
+
+
+      <view class="setting-card">
+        <text class="setting-label">闹钟模式</text>
+        <picker mode="selector" range="{{alarmModes}}" bindchange="onModeChange">
+          <view class="picker">{{selectedMode}}</view>
+        </picker>
+      </view>
+
+      <view class="setting-card">
+        <text class="setting-label">闹钟开关</text>
+        <switch checked="{{alarmEnabled}}" bindchange="onAlarmSwitchChange" color="#3d7ef9" />
+      </view>
+
+      <view class="setting-card">
+        <text class="setting-label">音乐开关</text>
+        <switch checked="{{alarmMuzicEnabled}}" bindchange="onAlarmMuzicChange" color="#3d7ef9" />
+      </view>
+      <view class="setting-card">
+        <text class="setting-label">整点报时</text>
+        <switch checked="{{hourlyTimeAnnouncement}}" bindchange="hourlyTimeAnnouncement" color="#3d7ef9" />
+      </view>
+
+    </view>
+  </view>
+  <!-- 控制区域 -->
+  <view class="control-section">
+    <input bindinput="voteTitle" placeholder="附加命令" class="input-field" />
+    <button bindtap="syncData" class="submit-button">同步数据</button>
+  </view>
+</view>

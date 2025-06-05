@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/logs/logs",
+    "pages/bluetooth/connect/connect",
+    "pages/bluetooth/setuuid/setuuid"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "智能唤醒灯",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "",
+        "iconPath": "static/home.png",
+        "selectedIconPath": "static/home-active.png"
+      },
+      {
+        "pagePath": "pages/bluetooth/connect/connect",
+        "text": "",
+        "iconPath": "static/connect.png",
+        "selectedIconPath": "static/connect-active.png"
+      },
+      {
+        "pagePath": "pages/logs/logs",
+        "text": "",
+        "iconPath": "static/User.png",
+        "selectedIconPath": "static/User-active.png"
+      }
+    ]
+  }
+}

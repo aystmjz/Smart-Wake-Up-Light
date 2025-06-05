@@ -1,0 +1,89 @@
+page {
+  color: #333;
+}
+.devices_summary {
+  padding: 10px;
+  font-size: 16px;
+  background-color: hsl(216, 5%, 22%);
+  color: #FFF;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+.device_list {
+  height: auto;
+  margin: 50px 5px;
+  margin-top: 5px;
+  border: 1px solid #EEE;
+  border-radius: 5px;
+  width: auto;
+}
+.device_item {
+  border-bottom: 1px solid #222;
+  padding: 10px;
+  color: #666;
+}
+.device_item_hover {
+  background-color: rgba(0, 0, 0, .1);
+}
+.connected_info {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #F0F0F0;
+  padding: 10px;
+  padding-bottom: 20px;
+  margin-bottom: env(safe-area-inset-bottom);
+  font-size: 14px;
+  min-height: 100px;
+  box-shadow: 0px 0px 3px 0px;
+}
+.connected_info .operation {
+  position: absolute;
+  display: inline-block;
+  right: 30px;
+}
+.button_sp{
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  background-color: #3d7ef9;
+  color: #FFF;
+  font-size: 15px;
+}
+.button_sp2{
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  background-color: #757575;
+  color: #FFF;
+}
+.flex-wrp{
+    height: auto;
+    display:flex;
+    background-color: #FFFFFF;
+ }
+ /*横向布局  */
+.layout_horizontal{
+  display: flex;
+  /*row 横向  column 列表  */
+  flex-direction: row;
+}
+/*纵向布局  */
+.layout_vertical{
+  height: 100rpx;
+  display: flex;
+  /*row 横向  column 列表  */
+  flex-direction: column;
+}
+/*划线  */
+.line {
+   background-color: blue;
+   height: 5px;
+   width: 100%;
+}
+.div{
+   background-color: white;
+   height: 10px;
+   width: 10px;
+}

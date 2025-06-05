@@ -1,0 +1,31 @@
+/* pages/setuuid/setuuid.wxss */
+
+.radio-group {
+    border-bottom: 1px solid #fff;
+}
+.radio {
+    display: block;
+    border-top: 1px solid #ddd;
+    padding-left: 20px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+.inputView{
+    border:  1px solid #ddd;
+    border-radius: 6px;
+    margin: 10px;
+    height: 25pt;
+}.button_sp{
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  background-color: #3d7ef9;
+  color: #FFF;
+}
+.button_sp2{
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 5px;
+  background-color: #757575;
+  color: #FFF;
+}
