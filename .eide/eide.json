@@ -20,8 +20,7 @@
   },
   "targets": {
     "Debug": {
-      "excludeList": [
-      ],
+      "excludeList": [],
       "toolchain": "AC5",
       "compileConfig": {
         "cpuType": "Cortex-M3",

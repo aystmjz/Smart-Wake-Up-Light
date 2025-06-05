@@ -156,6 +156,12 @@ void USART1_IRQHandler(void)
 				BT24RxCounter = 0;
 			}
 		}
+#if DEBUG_MODE == 3
+		while ((USART2->SR & 0X40) == 0)
+		{
+		} // 等待发送完成
+		USART2->DR = (uint8_t)BT24RxBuffer[BT24RxCounter - 1];
+#endif
 		BT24RxCounter %= BT24_UART_REC_LEN;
 	}
 }

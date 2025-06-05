@@ -78,21 +78,42 @@ uint8_t Key_GetState(void)
 void Key_Entry(void)
 {
 	static uint8_t NowState, LastState;
-	static uint16_t HoldTimer;
+	static uint16_t HoldTimer, ClickTimer;
+	static uint8_t ClickCount = 0;
+
 	LastState = NowState;
 	NowState = Key_GetState();
-	if (LastState == 0 && NowState == 1)
+
+	if (LastState == 0 && NowState == 1) // 检测到按键按下
 	{
-		Key_KeyNumber = 1;
+		ClickCount++;
+		if (ClickCount >= 2)
+			Key_KeyNumber = 3;
+		else
+			Key_KeyNumber = 1;
 		HoldTimer = 0;
 		Buzzer_Flag = 1;
 	}
-	else if (LastState == 1 && NowState == 1)
+	else if (LastState == 1 && NowState == 1) // 持续按住
 	{
 		HoldTimer++;
 		if (HoldTimer > 20)
 		{
-			Key_KeyNumber = 2;
+			Key_KeyNumber = 2; // 长按事件
+		}
+	}
+
+	// 更新双击计时器
+	if (ClickCount && NowState == 0)
+	{
+		if (ClickTimer < 5) // 设置双击最大间隔时间
+		{
+			ClickTimer++;
+		}
+		else
+		{
+			ClickTimer = 0;
+			ClickCount = 0; // 超时清零
 		}
 	}
 }

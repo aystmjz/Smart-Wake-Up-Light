@@ -457,19 +457,6 @@ int main()
 	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
 	Debug_printf("Init OK\r\n");
-
-	int16_t AD_Value = 0;
-	float Voltage;
-	while (1)
-	{
-		Delay_ms(2000);
-		AD_Value = AD_GetValue();
-		Battery_UpdateLevel(AD_Value);
-		Voltage = (float)AD_Value / 4095.0 * 3.3;
-		sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value * 2, Voltage * 2, Battery_GetLevel(), Battery_GetState());
-		Debug_printf(Debug_str);
-	}
-
 	while (1)
 	{
 
@@ -479,14 +466,17 @@ int main()
 			switch (KeyNum)
 			{
 			case 1:
-				Key_Clear();
-				Delay_ms(1000);
-				if (Key_GetNumber() == 1)
-					WakeUp_Flag = 1;
+				Debug_printf("KeyNum=1\r\n");
 				break;
 			case 2:
+				Debug_printf("KeyNum=2\r\n");
 				EPD_WeakUp();
 				KeyNumber_Set();
+				Key_GetNumber();
+				break;
+			case 3:
+				Debug_printf("KeyNum=3\r\n");
+				WakeUp_Flag = 1;
 				break;
 			}
 			Refresh_Flag = 1;
