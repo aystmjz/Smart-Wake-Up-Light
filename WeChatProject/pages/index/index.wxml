@@ -92,7 +92,7 @@
   </view>
   <!-- 控制区域 -->
   <view class="control-section">
-    <input bindinput="voteTitle" placeholder="附加命令" class="input-field" />
+    <input bindinput="onCommandInput" bindlongpress ="showCommandTips" placeholder="输入命令(长按查看命令列表)" class="input-field"  value="{{sendText}}"/>
     <button bindtap="syncData" class="submit-button">同步数据</button>
   </view>
 </view>

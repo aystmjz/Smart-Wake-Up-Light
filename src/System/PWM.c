@@ -62,7 +62,7 @@ void PWM_Run(uint8_t *Mod)
     KeyNum = Key_GetNumber();
     PWM_Set(1);
     PWM_Enable();
-    while (!KeyNum)
+    while (!KeyNum&&!BT24_GetStatus())
     {
         KeyNum = Key_GetNumber();
         DS3231_ReadTime(&Time_Temp);

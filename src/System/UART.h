@@ -8,7 +8,7 @@
 
 #define ASRPRO_UART_REC_LEN 255
 #define BT24_UART_REC_LEN 1024
-#define DEBUG_BUFF_LEN 24
+#define DEBUG_BUFF_LEN 64
 
 extern uint16_t ASRPRORxCounter;
 extern uint16_t BT24RxCounter;

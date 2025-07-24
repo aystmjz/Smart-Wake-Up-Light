@@ -5,6 +5,7 @@
 #include "Key.h"
 #include <time.h>
 #include "DS3231.h"
+#include "BT24.h"
 
 #define PWM_EXIT_HOUR 5
 #define PWM_NUM 7

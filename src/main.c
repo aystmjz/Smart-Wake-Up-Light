@@ -635,14 +635,53 @@ int main()
 					DS3231_ReadAlarm(PubData.Alarm);
 					W25Q128_ReadSetting(PubData.Set);
 					PWM_AdjustAlarm(PubData.Alarm, &PubData.Set->PwmMod, 1);
-					ASRPRO_Power_Control(PubData.Set->VoiceEnable);
+
+					sprintf(Debug_str, "Extra: %s\r\n", Extra);
+					Debug_printf(Debug_str);
+
+					if (strstr(Extra, "TIME+"))
+					{
+						time_t timestamp;
+						sscanf(Extra, "TIME+%ld", &timestamp);
+						sprintf(Debug_str, "timestamp: %ld\r\n", timestamp);
+						Debug_printf(Debug_str);
+						timestamp += 8 * 3600; // 将UTC时间转换为北京时间
+						struct tm *parsed_time = localtime(&timestamp);
+						if (parsed_time != NULL)
+						{
+							DS3231_WriteTime(parsed_time);
+							Time = *parsed_time;
+							sprintf(Debug_str, "Time set successfully: %04d-%02d-%02d %02d:%02d:%02d\r\n",
+									parsed_time->tm_year + 1900,
+									parsed_time->tm_mon + 1,
+									parsed_time->tm_mday,
+									parsed_time->tm_hour,
+									parsed_time->tm_min,
+									parsed_time->tm_sec);
+							Debug_printf(Debug_str);
+						}
+						else
+						{
+							Debug_printf("Error: Failed to convert timestamp to time structure\r\n");
+						}
+					}
+					else if (strstr(Extra, "VOICE"))
+					{
+						WakeUp_Flag = 1;
+					}
+					else if (strstr(Extra, "RESET"))
+					{
+						NVIC_SystemReset();
+					}
 					Refresh_Flag = 1;
 					break;
 				case 1:
-
+					ASRPRO_printf("%c%c", 0xaa, 0x01);
+					// onLedChange
 					break;
 				case 2:
-
+					ASRPRO_printf("%c%c", 0xaa, 0x02);
+					// onFanChange
 					break;
 
 				default:
