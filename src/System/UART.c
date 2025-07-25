@@ -25,10 +25,10 @@ int fputc(int ch, FILE *f) // 重定义fputc函数
 
 #endif
 
-uint16_t ASRPRORxCounter;
-uint16_t BT24RxCounter;
-uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
-uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
+volatile uint16_t ASRPRORxCounter;
+volatile uint16_t BT24RxCounter;
+volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
+volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
 char Debug_str[DEBUG_BUFF_LEN];
 
 /// @brief 初始化串口1(BT24)
@@ -131,13 +131,16 @@ void BT24_SendStr(char *SendBuf)
 
 void BT24_printf(char *SendBuf)
 {
+#if DEBUG_MODE == 4
+#else
 	BT24_SendStr(SendBuf);
+#endif
 }
 
 void BT24_Clear_Buff(void)
 {
 	BT24RxCounter = 0;
-	for (uint8_t i = 0; i < BT24_UART_REC_LEN; i++)
+	for (uint16_t i = 0; i < BT24_UART_REC_LEN; i++)
 	{
 		BT24RxBuffer[i] = 0;
 	}
@@ -171,7 +174,7 @@ void USART1_IRQHandler(void)
 void ASRPRO_Clear_Buff(void)
 {
 	ASRPRORxCounter = 0;
-	for (uint8_t i = 0; i < ASRPRO_UART_REC_LEN; i++)
+	for (uint16_t i = 0; i < ASRPRO_UART_REC_LEN; i++)
 	{
 		ASRPRORxBuffer[i] = 0;
 	}

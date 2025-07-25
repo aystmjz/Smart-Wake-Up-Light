@@ -1,7 +1,9 @@
 #include "BT24.h"
 
 static char AT_cmd[ATCMD_BUFF_LEN];
-void BT24_Init(void)
+
+uint8_t BT24_AT_Init(char *DeviceName);
+void BT24_Init(char *DeviceName)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -19,6 +21,8 @@ void BT24_Init(void)
 #else
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
 #endif
+
+    BT24_AT_Init(DeviceName);
 }
 
 void BT24_Reset(void)
@@ -29,6 +33,7 @@ void BT24_Reset(void)
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
     Delay_ms(20);
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+    Delay_ms(200);
 #endif
 }
 
@@ -110,6 +115,7 @@ uint16_t Data_ScanInt(char *Flag, uint8_t Len)
 uint8_t ATcmd_Wait(char *Ack, char *Error, uint16_t Wait_Time, uint8_t Try_Time)
 {
     ATcmd_Clear_Buffer();
+    Delay_ms(100);
     if (!Try_Time)
         Try_Time = 0xff;
     for (uint8_t i = 1; i <= Try_Time; i++)
@@ -202,6 +208,79 @@ void ATcmd_MakeSend(int num, const char *cmd, ...)
     strcat(cmd_temp, "\r\n");
     va_end(arg_list);
     ATcmd_Send(cmd_temp);
+}
+
+/**
+ * @brief 初始化蓝牙模块参数（波特率、设备名称等）
+ * @return 成功返回1，失败返回0
+ */
+uint8_t BT24_AT_Init(char *DeviceName)
+{
+    ATcmd_UartInit(115200);
+    Debug_printf("BT24: AT_Init \r\n");
+
+    BT24_Reset();
+    ATcmd_Set("AT\r\n");
+    if (!ATcmd_Wait("OK", "Error: Device not responding in baud_115200\r\n", 500, 3))
+    {
+        ATcmd_UartInit(9600);
+        ATcmd_Set("AT\r\n");
+        if (!ATcmd_Wait("OK", "Error: Device not responding in baud_9600\r\n", 500, 3))
+        {
+            return 0;
+        }
+        Debug_printf("BT24: Device recognized (9600)\r\n");
+    }
+    else
+    {
+        Debug_printf("BT24: Device recognized (115200)\r\n");
+    }
+
+    ATcmd_Make(0, "BAUD");
+    if (ATcmd_Wait("+BAUD", "Error: Read BAUD failed\r\n", 500, 3))
+    {
+        sprintf(Debug_str, "BT24: Current Baud Code = %d\r\n", Data_ScanInt("+BAUD=", 1));
+        Debug_printf(Debug_str);
+        if (Data_ScanInt("+BAUD=", 1) != BT_DEVICE_BAUD)
+        {
+            Debug_printf("BAUD Changing...\r\n");
+            char baud_cmd[8];
+            sprintf(baud_cmd, "BAUD%d", BT_DEVICE_BAUD);
+            ATcmd_Make(0, baud_cmd);
+            if (ATcmd_Wait("OK", "Error: Set BAUD failed\r\n", 500, 3))
+            {
+                ATcmd_MakeSend(0, "RESET");
+                sprintf(Debug_str, "BT24: Change Baud Code = %d ,Reseting... \r\n", BT_DEVICE_BAUD);
+                Debug_printf(Debug_str);
+                NVIC_SystemReset();
+            }
+        }
+    }
+
+    ATcmd_Make(0, "NAME");
+    if (ATcmd_Wait("+NAME", "Error:Read NAME failed\r\n", 500, 2))
+    {
+        char name_value[32];
+        if (Data_Scan(name_value, "+NAME=", strlen(DeviceName)))
+        {
+            sprintf(Debug_str, "BT24: Current Name = %s\r\n", name_value);
+            Debug_printf(Debug_str);
+            if (strncmp(name_value, DeviceName, strlen(DeviceName)) != 0)
+            {
+                Debug_printf("Name Changing...\r\n");
+                char name_cmd[32];
+                sprintf(name_cmd, "NAME%s", DeviceName);
+                ATcmd_Make(0, name_cmd);
+                if (ATcmd_Wait("OK", "Error: Set NAME failed\r\n", 500, 3))
+                {
+                    ATcmd_MakeSend(0, "RESET");
+                    sprintf(Debug_str, "BT24: Change Name = %s ,Reseting... \r\n", DeviceName);
+                    Debug_printf(Debug_str);
+                }
+            }
+        }
+    }
+    return 1;
 }
 
 // void test()

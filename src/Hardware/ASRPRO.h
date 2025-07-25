@@ -5,6 +5,8 @@
 #include "UART.h"
 #include "Delay.h"
 
+#define ASRPRO_DEVICE_BAUD 115200
+
 void ASRPRO_Init(void);
 void ASRPRO_Power_ON(void);
 void ASRPRO_Power_OFF(void);

@@ -408,7 +408,8 @@ int main()
 {
 	char Json_Str[BT24_UART_REC_LEN];
 	char Extra[50];
-	uint8_t Refresh_Flag = 1, TIME_Judge = 0;
+	uint8_t TIME_Judge = 0;
+	uint8_t Refresh_Flag = 1;
 	uint8_t KeyNum, CmdNum;
 	uint8_t MID = 0;
 	uint16_t DID = 0;
@@ -419,21 +420,27 @@ int main()
 	OLED_Init();
 	SHT30_Init();
 	EXTI0_Init();
+	EXTI9_Init();
 	W25Q128_Init();
 	ASRPRO_Init();
 	Buzzer_Init();
-	Uart_Init(115200);
 	DS3231_Init(&Time, &Alarm);
-
 	W25Q128_ReadID(&MID, &DID);
-	sprintf(Debug_str, "MID=%d DID=%d\r\n", MID, DID);
-	Debug_printf(Debug_str);
 	if (MID)
 	{
 		W25Q128_ReadSetting(&Set);
 		PWM_AdjustAlarm(&Alarm, &Set.PwmMod, 1);
 	}
-
+	if (Set.DeviceName[0] != 0xff)
+	{
+		BT24_Init(Set.DeviceName);
+		sprintf(Debug_str, "DeviceName=%s\r\n", Set.DeviceName);
+		Debug_printf(Debug_str);
+	}
+	else
+		BT24_Init(BT_DEVICE_NAME);
+	sprintf(Debug_str, "MID=%d DID=%d\r\n", MID, DID);
+	Debug_printf(Debug_str);
 	Battery_UpdateLevel(AD_GetValue());
 	if (!Battery_GetState())
 	{
@@ -495,7 +502,10 @@ int main()
 			}
 
 			if (BT24_GetStatus())
+			{
+				Delay_ms(100);
 				BT24_PubData(&PubData);
+			}
 
 			OLED_Clear(WHITE);
 			OLED_Printf(Time_Hour < 10 ? 62 : 10, 4, OLED_52X104, BLACK, "%d", Time_Hour);
@@ -595,6 +605,13 @@ int main()
 		}
 		DS3231_ReadTime(&Time);
 
+		if (EXTI9_Get_Flag())
+		{
+			Debug_printf("EXTI9(BT24)\r\n");
+			Delay_ms(1000);
+			BT24_PubData(&PubData);
+		}
+
 		if (EXTI0_Get_Flag())
 		{
 			if (DS3231_ReadStatus(&Alarm) && !LowPower_Now)
@@ -613,7 +630,7 @@ int main()
 
 		if (EXTI5_Get_Flag())
 		{
-			Debug_printf("EXTI5\r\n");
+			Debug_printf("EXTI5(Key)\r\n");
 			Delay_ms(100);
 			Key_Clear();
 			Delay_ms(2000);
@@ -630,15 +647,9 @@ int main()
 				{
 				case 0:
 					BT24_ParseData(Json_Str, &PubData, Extra);
-					WriteAlarm(PubData.Alarm, &PubData.Set->PwmMod);
-					W25Q128_WriteSetting(PubData.Set);
-					DS3231_ReadAlarm(PubData.Alarm);
-					W25Q128_ReadSetting(PubData.Set);
-					PWM_AdjustAlarm(PubData.Alarm, &PubData.Set->PwmMod, 1);
 
 					sprintf(Debug_str, "Extra: %s\r\n", Extra);
 					Debug_printf(Debug_str);
-
 					if (strstr(Extra, "TIME+"))
 					{
 						time_t timestamp;
@@ -665,6 +676,28 @@ int main()
 							Debug_printf("Error: Failed to convert timestamp to time structure\r\n");
 						}
 					}
+					else if (strstr(Extra, "NAME+"))
+					{
+						char name[32] = {0};
+						char *pstr, *pData = name;
+						pstr = strstr(Extra, "NAME+") + 5;
+						while (*pstr != '\0')
+						{
+							*pData = *pstr;
+							pstr++;
+							pData++;
+						}
+						if (strlen(name) > 0)
+						{
+							sprintf((char *)PubData.Set->DeviceName, "%s", name);
+							sprintf(Debug_str, "BT24: Setting device name to: %s\r\n", name);
+							Debug_printf(Debug_str);
+						}
+						else
+						{
+							Debug_printf("Error: Invalid device name");
+						}
+					}
 					else if (strstr(Extra, "VOICE"))
 					{
 						WakeUp_Flag = 1;
@@ -673,6 +706,11 @@ int main()
 					{
 						NVIC_SystemReset();
 					}
+					WriteAlarm(PubData.Alarm, &PubData.Set->PwmMod);
+					W25Q128_WriteSetting(PubData.Set);
+					DS3231_ReadAlarm(PubData.Alarm);
+					W25Q128_ReadSetting(PubData.Set);
+					PWM_AdjustAlarm(PubData.Alarm, &PubData.Set->PwmMod, 1);
 					Refresh_Flag = 1;
 					break;
 				case 1:

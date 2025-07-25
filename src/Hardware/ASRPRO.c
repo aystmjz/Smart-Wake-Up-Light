@@ -11,6 +11,8 @@ void ASRPRO_Init(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     GPIO_SetBits(GPIOB, GPIO_Pin_8);
+
+    uart2_init(ASRPRO_DEVICE_BAUD);
 }
 
 void ASRPRO_Mute_ON(void)

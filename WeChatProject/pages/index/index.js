@@ -44,6 +44,10 @@ Page({
         command: "VOICE",
         description: "唤醒语音助手",
       },
+      {
+        command: "NAME",
+        description: "更改设备名称",
+      },
     ],
   },
 
@@ -57,9 +61,15 @@ Page({
       success: (res) => {
         console.log("选择第" + res.tapIndex + "个命令");
         const selectedCommand = this.data.commands[res.tapIndex].command;
-        this.setData({
-          sendText: selectedCommand,
-        });
+        if(selectedCommand === "NAME"){
+          this.setData({
+            sendText: selectedCommand + "+" + (this.data.device == null ? "Unnamed" : this.data.device.name),
+          });
+        }else{
+          this.setData({
+            sendText: selectedCommand,
+          });
+        }
       },
       fail: (res) => {
         console.log("取消操作");
@@ -286,8 +296,15 @@ Page({
             title: "语音助手已唤醒",
             showCancel: false,
             confirmText: "确定",
+          });NAME
+        } else if (this.data.sendText.includes("NAME") && this.data.Cmd == 0) {
+          wx.showModal({
+            title: "已更改设备名称",
+            content: "设备重启后生效",
+            showCancel: false,
+            confirmText: "确定",
           });
-        } else {
+        }else {
           wx.showToast({
             title: "数据发送成功",
             icon: "none",
