@@ -61,11 +61,11 @@ Page({
       success: (res) => {
         console.log("选择第" + res.tapIndex + "个命令");
         const selectedCommand = this.data.commands[res.tapIndex].command;
-        if(selectedCommand === "NAME"){
+        if (selectedCommand === "NAME") {
           this.setData({
             sendText: selectedCommand + "+" + (this.data.device == null ? "Unnamed" : this.data.device.name),
           });
-        }else{
+        } else {
           this.setData({
             sendText: selectedCommand,
           });
@@ -110,14 +110,14 @@ Page({
         connected: false,
       });
     }
-    // if (this.connected) {
-    //   wx.showToast({
-    //     title: "重新连接请先重启小程序",
-    //     icon: "none",
-    //   })
-    //   return;
-    // }
-    // 获取传递过来的设备信息
+    if (this.connected) {
+      wx.showToast({
+        title: "重新连接请先重启小程序",
+        icon: "none",
+      })
+      return;
+    }
+    //获取传递过来的设备信息
     this.data.device = app.globalData.ble_device;
     if (!this.data.device || !this.data.device.deviceId) {
       wx.showToast({
@@ -197,11 +197,23 @@ Page({
         }
       },
     });
+
     wx.onBLECharacteristicValueChange((characteristic) => {
       const buf = new Uint8Array(characteristic.value);
       const recStr = String.fromCharCode.apply(null, buf);
-      console.log("收到数据：", recStr);
-      const data = JSON.parse(recStr);
+
+      // 解析数据
+      let data;
+      try {
+        data = JSON.parse(recStr);
+      } catch (e) {
+        console.log("收到非JSON数据: ", recStr);
+        app.addDebugLog(recStr);
+        return;
+      }
+
+      console.log("收到JSON数据:", recStr);
+      // 更新主页面数据
       this.setData({
         Temp: data.Temp,
         Hum: data.Hum,
@@ -213,6 +225,7 @@ Page({
         alarmMuzicEnabled: data.Muzic,
         dataSynced: true,
       });
+
       wx.showToast({
         title: "已同步",
         icon: "none",
@@ -224,7 +237,7 @@ Page({
     if (!this.data.connected) {
       this.data.dataSynced = false;
       wx.switchTab({
-        url: '/pages/bluetooth/connect/connect', // 跳转到 index 页面
+        url: '/pages/bluetooth/connect/connect', 
       });
       wx.showToast({
         title: "请先连接蓝牙设备",
@@ -264,7 +277,7 @@ Page({
       Extra: this.data.sendExtra,
     });
 
-    console.log("待发送数据数据：" + this.data.sendData);
+    console.log("待发送数据数据:" + this.data.sendData);
 
     const buffer = new ArrayBuffer(this.data.sendData.length);
     const dataView = new DataView(buffer);
@@ -286,25 +299,28 @@ Page({
             confirmText: "确定",
           });
         } else if (this.data.sendText === "RESET" && this.data.Cmd == 0) {
-          wx.showModal({
-            title: "重启设备成功",
-            showCancel: false,
-            confirmText: "确定",
+          wx.switchTab({
+            url: '/pages/debug/debug',
+          });
+          wx.showToast({
+            title: "设备正在重启",
+            icon: "none",
           });
         } else if (this.data.sendText === "VOICE" && this.data.Cmd == 0) {
           wx.showModal({
             title: "语音助手已唤醒",
             showCancel: false,
             confirmText: "确定",
-          });NAME
+          });
+
         } else if (this.data.sendText.includes("NAME") && this.data.Cmd == 0) {
           wx.showModal({
             title: "已更改设备名称",
-            content: "设备重启后生效",
+            content: "请重新连接设备",
             showCancel: false,
             confirmText: "确定",
           });
-        }else {
+        } else {
           wx.showToast({
             title: "数据发送成功",
             icon: "none",

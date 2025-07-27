@@ -1,0 +1,28 @@
+<!-- pages/debug/debug.wxml -->
+<view class="container">
+  <view class="header-container">
+    <view class="header-title">{{connectState}}</view>
+  </view>
+  <view class="content">
+    <scroll-view class="log-container" scroll-y="true" scroll-top="{{scrollTop}}">
+      <text class="log-text">{{logText}}</text>
+    </scroll-view>
+
+    <view class="input-container">
+      <input 
+        class="send-input" 
+        placeholder="输入要发送的数据" 
+        value="{{sendText}}"
+        bindinput="onSendTextChange" />
+      <button class="send-btn" bindtap="sendData">发送数据</button>
+    </view>
+
+    <view class="actions">
+      <button class="action-btn" bindtap="clearLog">清空日志</button>
+      <button class="action-btn" bindtap="copyLog">复制日志</button>
+      <button class="action-btn" bindtap="toggleAutoScroll">
+        {{autoScroll ? '关闭' : '开启'}}自动滚动
+      </button>
+    </view>
+  </view>
+</view>

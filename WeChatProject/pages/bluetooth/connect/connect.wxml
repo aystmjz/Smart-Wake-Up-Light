@@ -1,15 +1,13 @@
 <!--横向均分  -->
 <view style='background-color:#fff'>
   <view class="layout_horizontal" style="display: flex; justify-content: center;">
-    <button class="button_sp" hover-class="button_sp2" style="flex:1; margin: 0 10px;" bindtap='gotosetuuid'>设置UUID</button>
-    <button loading="{{misScanding}}" class="button_sp" hover-class="button_sp2" style="flex:1; margin: 0 10px;" bindtap="openBluetoothAdapter">{{scandbutName}}</button>
+    <button class="button_sp" style="flex:1; margin: 0 10px;" bindtap='gotosetuuid'>设置UUID</button>
+    <button loading="{{misScanding}}" class="button_sp" style="flex:1; margin: 0 10px;" bindtap="openBluetoothAdapter">{{scandbutName}}</button>
   </view>
   <!-- <view class="div" style='background-color:white'></view>
     <button style='display:none' bindtap="stopBluetoothDevicesDiscovery">停止扫描</button>
     <button style='display:none' bindtap="closeBluetoothAdapter">结束流程</button>  -->
 </view>
-  <view style='background-color: #fff;height: 10px;width: 100%;'></view>
-
   <view class="devices_summary">已发现 {{devices.length}} 个BLE设备：</view>
   <scroll-view class="device_list" scroll-y scroll-with-animation>
     <view wx:for="{{devices}}" wx:key="index" data-device-id="{{item.deviceId}}" data-name="{{item.name || item.localName}}" bindtap="goto_Comm" class="device_item" hover-class="device_item_hover">

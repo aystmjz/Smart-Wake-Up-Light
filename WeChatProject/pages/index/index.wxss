@@ -139,7 +139,6 @@
   transition: background-color 0.3s;
 }
 
-.submit-button:active,
-.submit-button:hover {
-  background-color: #3578e5;
+.submit-button:active {
+  background: #757575;
 }
