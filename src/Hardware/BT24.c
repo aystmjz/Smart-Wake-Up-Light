@@ -49,7 +49,7 @@ void ATcmd_Main_printf(char *SendBuf)
 
 void ATcmd_Debug_printf(char *SendBuf)
 {
-    Debug_printf(SendBuf);
+    LOG_ERROR("[BT24] %s", SendBuf);
 }
 
 void ATcmd_Send(char *ATcmd)
@@ -216,43 +216,53 @@ void ATcmd_MakeSend(int num, const char *cmd, ...)
  */
 uint8_t BT24_AT_Init(char *DeviceName)
 {
-    ATcmd_UartInit(115200);
-    Debug_printf("BT24: AT_Init \r\n");
+    if (BT24_GetStatus())
+    {
+        LOG_WARN("[BT24] Device Already Connected - Cannot Enter AT Mode\r\n");
+        return 0;
+    }
 
-    BT24_Reset();
+    ATcmd_UartInit(115200);
+    LOG_INFO("[BT24] Initializing AT Command Interface\r\n");
+
     ATcmd_Set("AT\r\n");
-    if (!ATcmd_Wait("OK", "Error: Device not responding in baud_115200\r\n", 500, 3))
+    if (!ATcmd_Wait("OK", "Device not responding in baud_115200\r\n", 500, 3))
     {
         ATcmd_UartInit(9600);
         ATcmd_Set("AT\r\n");
-        if (!ATcmd_Wait("OK", "Error: Device not responding in baud_9600\r\n", 500, 3))
+        if (!ATcmd_Wait("OK", "Device not responding in baud_9600\r\n", 500, 3))
         {
+            ATcmd_UartInit(DEBUG_BAUD);
+            LOG_ERROR("[BT24] Device Initialization Failed: No Response at Baud Rates 9600/115200.\r\n");
             return 0;
         }
-        Debug_printf("BT24: Device recognized (9600)\r\n");
+        LOG_INFO("[BT24] Device recognized (9600)\r\n");
     }
     else
     {
-        Debug_printf("BT24: Device recognized (115200)\r\n");
+        LOG_INFO("[BT24] Device recognized (115200)\r\n");
     }
 
     ATcmd_Make(0, "BAUD");
-    if (ATcmd_Wait("+BAUD", "Error: Read BAUD failed\r\n", 500, 3))
+    if (ATcmd_Wait("+BAUD", "Read BAUD failed\r\n", 500, 3))
     {
-        sprintf(Debug_str, "BT24: Current Baud Code = %d\r\n", Data_ScanInt("+BAUD=", 1));
-        Debug_printf(Debug_str);
+        LOG_INFO("[BT24] Current Baud Code = %d\r\n", Data_ScanInt("+BAUD=", 1));
+
         if (Data_ScanInt("+BAUD=", 1) != BT_DEVICE_BAUD)
         {
-            Debug_printf("BAUD Changing...\r\n");
+            LOG_INFO("[BT24] BAUD Changing...\r\n");
             char baud_cmd[8];
             sprintf(baud_cmd, "BAUD%d", BT_DEVICE_BAUD);
             ATcmd_Make(0, baud_cmd);
-            if (ATcmd_Wait("OK", "Error: Set BAUD failed\r\n", 500, 3))
+            if (ATcmd_Wait("OK", "Set BAUD failed\r\n", 500, 3))
             {
-                ATcmd_MakeSend(0, "RESET");
-                sprintf(Debug_str, "BT24: Change Baud Code = %d ,Reseting... \r\n", BT_DEVICE_BAUD);
-                Debug_printf(Debug_str);
+                LOG_INFO("[BT24] Change Baud Code = %d ,Reseting... \r\n", BT_DEVICE_BAUD);
+                BT24_Reset();
                 NVIC_SystemReset();
+            }
+            else
+            {
+                return 0;
             }
         }
     }
@@ -263,23 +273,27 @@ uint8_t BT24_AT_Init(char *DeviceName)
         char name_value[32];
         if (Data_Scan(name_value, "+NAME=", strlen(DeviceName)))
         {
-            sprintf(Debug_str, "BT24: Current Name = %s\r\n", name_value);
-            Debug_printf(Debug_str);
+            LOG_INFO("[BT24] Current Name = %s\r\n", name_value);
+
             if (strncmp(name_value, DeviceName, strlen(DeviceName)) != 0)
             {
-                Debug_printf("Name Changing...\r\n");
+                LOG_INFO("[BT24] Name Changing...\r\n");
                 char name_cmd[32];
                 sprintf(name_cmd, "NAME%s", DeviceName);
                 ATcmd_Make(0, name_cmd);
-                if (ATcmd_Wait("OK", "Error: Set NAME failed\r\n", 500, 3))
+                if (ATcmd_Wait("OK", "Set NAME failed\r\n", 500, 3))
                 {
-                    ATcmd_MakeSend(0, "RESET");
-                    sprintf(Debug_str, "BT24: Change Name = %s ,Reseting... \r\n", DeviceName);
-                    Debug_printf(Debug_str);
+                    LOG_INFO("[BT24] Change Name = %s ,Reseting... \r\n", DeviceName);
+                    BT24_Reset();
+                }
+                else
+                {
+                    return 0;
                 }
             }
         }
     }
+    LOG_INFO("[BT24] Bluetooth Name: %s\r\n", DeviceName);
     return 1;
 }
 
@@ -295,195 +309,4 @@ uint8_t BT24_AT_Init(char *DeviceName)
 void BT24_PubString(char *str)
 {
     BT24_printf(str);
-}
-
-void BT24_PubJson(cJSON *json)
-{
-    char *str = cJSON_Print(json);
-    BT24_PubString(str);
-    cJSON_free(str);
-}
-
-uint8_t BT24_FindValidJson(char *buffer, uint16_t length, char *json_str)
-{
-    uint16_t start = 0xffff, end = 0;
-
-    if (length < 5)
-        return 0;
-
-    for (uint16_t i = 0; i < length - 1; i++)
-    {
-        if (buffer[i] == '{' && buffer[i + 1] == '"')
-        {
-            start = i;
-            break;
-        }
-    }
-    if (start == 0xffff)
-        return 0;
-
-    for (uint16_t i = start + 3; i < length; i++)
-    {
-        if (buffer[i] == '}' && buffer[i - 1] == '"')
-        {
-            end = i;
-            break;
-        }
-    }
-    if (!end)
-        return 0;
-
-    uint16_t json_length = end - start + 1;
-    memcpy(json_str, &buffer[start], json_length);
-    json_str[json_length] = '\0';
-    buffer[start] = '*';
-    buffer[end] = '*';
-
-    return 1;
-}
-
-// {
-// "Cmd":0,
-// "Temp":23.7,
-// "Hum":24.2,
-// "Alarm":false,
-// "Time":"06:00",
-// Days":{"mon":true,"tue":true,"wed":true,"thu":true,"fri":true,"sat":false,"sun":false},
-// "Mode":"60min",
-// "Voice":false,
-// "Muzic":false,
-// "Extra":""
-// }
-void BT24_PubData(PubDataTypeDef *PubData)
-{
-    cJSON *Data = NULL;
-    cJSON *Days = NULL;
-    char DataTemp[8];
-    Data = cJSON_CreateObject();
-    Days = cJSON_CreateObject();
-    cJSON_AddNumberToObject(Data, "Temp", (uint8_t)PubData->SHT->Temp + ((uint8_t)(PubData->SHT->Temp * 10) % 10) / 10.0);
-    cJSON_AddNumberToObject(Data, "Hum", (uint8_t)PubData->SHT->Hum);
-    cJSON_AddBoolToObject(Data, "Alarm", PubData->Alarm->Enable);
-    sprintf(DataTemp, "%02d:%02d", PubData->Alarm->Hour, PubData->Alarm->Min);
-    cJSON_AddStringToObject(Data, "Time", DataTemp);
-    cJSON_AddBoolToObject(Days, "mon", PubData->Set->WeekEnable[0]);
-    cJSON_AddBoolToObject(Days, "tue", PubData->Set->WeekEnable[1]);
-    cJSON_AddBoolToObject(Days, "wed", PubData->Set->WeekEnable[2]);
-    cJSON_AddBoolToObject(Days, "thu", PubData->Set->WeekEnable[3]);
-    cJSON_AddBoolToObject(Days, "fri", PubData->Set->WeekEnable[4]);
-    cJSON_AddBoolToObject(Days, "sat", PubData->Set->WeekEnable[5]);
-    cJSON_AddBoolToObject(Days, "sun", PubData->Set->WeekEnable[6]);
-    cJSON_AddItemToObject(Data, "Days", Days);
-    sprintf(DataTemp, "%smin", Get_PWM_Str(&PubData->Set->PwmMod));
-    cJSON_AddStringToObject(Data, "Mode", DataTemp);
-    cJSON_AddBoolToObject(Data, "Buzzer", PubData->Set->BuzzerEnable);
-    cJSON_AddBoolToObject(Data, "Muzic", PubData->Set->MuzicEnable);
-    BT24_PubJson(Data);
-    cJSON_Delete(Data);
-}
-
-/**
- * @brief 从JSON字符串解析命令
- * @param json_str JSON字符串
- * @return 解析成功返回Cmd，失败返回-1
- */
-int8_t BT24_ParseCmd(const char *json_str)
-{
-    cJSON *root = cJSON_Parse(json_str);
-    cJSON *item = NULL;
-    if (!root)
-        return -1;
-
-    item = cJSON_GetObjectItem(root, "Cmd");
-    if (cJSON_IsNumber(item))
-    {
-        cJSON_Delete(root);
-        return item->valueint;
-    }
-    else
-    {
-        cJSON_Delete(root);
-        return -1;
-    }
-}
-
-/**
- * @brief 从JSON字符串解析数据到结构体
- * @param json_str JSON字符串
- * @param PubData 目标数据结构体指针
- * @return 解析成功返回1，失败返回0
- */
-uint8_t BT24_ParseData(const char *json_str, PubDataTypeDef *PubData, char *Extra)
-{
-    cJSON *root = cJSON_Parse(json_str);
-    cJSON *item = NULL;
-    if (!root)
-        return 0;
-
-    item = cJSON_GetObjectItem(root, "Alarm");
-    if (cJSON_IsBool(item))
-        PubData->Alarm->Enable = cJSON_IsTrue(item);
-
-    item = cJSON_GetObjectItem(root, "Time");
-    if (cJSON_IsString(item))
-    {
-        int hour, min;
-        if (sscanf(item->valuestring, "%d:%d", &hour, &min) == 2)
-        {
-            PubData->Alarm->Hour = hour;
-            PubData->Alarm->Min = min;
-        }
-    }
-
-    cJSON *days = cJSON_GetObjectItem(root, "Days");
-    if (days)
-    {
-        PubData->Set->WeekEnable[0] = cJSON_IsTrue(cJSON_GetObjectItem(days, "mon"));
-        PubData->Set->WeekEnable[1] = cJSON_IsTrue(cJSON_GetObjectItem(days, "tue"));
-        PubData->Set->WeekEnable[2] = cJSON_IsTrue(cJSON_GetObjectItem(days, "wed"));
-        PubData->Set->WeekEnable[3] = cJSON_IsTrue(cJSON_GetObjectItem(days, "thu"));
-        PubData->Set->WeekEnable[4] = cJSON_IsTrue(cJSON_GetObjectItem(days, "fri"));
-        PubData->Set->WeekEnable[5] = cJSON_IsTrue(cJSON_GetObjectItem(days, "sat"));
-        PubData->Set->WeekEnable[6] = cJSON_IsTrue(cJSON_GetObjectItem(days, "sun"));
-    }
-
-    item = cJSON_GetObjectItem(root, "Mode");
-    if (cJSON_IsString(item))
-    {
-        int min_val;
-        if (sscanf(item->valuestring, "%dmin", &min_val) == 1)
-        {
-            for (uint8_t current_mod = 1; current_mod <= PWM_NUM; current_mod++)
-            {
-                const char *pwm_str = Get_PWM_Str(&current_mod);
-                if (atoi(pwm_str) == min_val)
-                {
-                    PubData->Set->PwmMod = current_mod;
-                    break;
-                }
-            }
-
-            if (PubData->Set->PwmMod > PWM_NUM)
-            {
-                PubData->Set->PwmMod = PWM_NUM;
-            }
-        }
-    }
-
-    item = cJSON_GetObjectItem(root, "Buzzer");
-    if (cJSON_IsBool(item))
-        PubData->Set->BuzzerEnable = cJSON_IsTrue(item);
-
-    item = cJSON_GetObjectItem(root, "Muzic");
-    if (cJSON_IsBool(item))
-        PubData->Set->MuzicEnable = cJSON_IsTrue(item);
-
-    item = cJSON_GetObjectItem(root, "Extra");
-    if (cJSON_IsString(item))
-    {
-        sprintf(Extra, "%s", item->valuestring);
-    }
-
-    cJSON_Delete(root);
-    return 1;
 }

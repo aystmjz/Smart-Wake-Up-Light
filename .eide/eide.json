@@ -4,7 +4,8 @@
   "dependenceList": [],
   "srcDirs": [
     "src",
-    "lib"
+    "lib",
+    "src/APP"
   ],
   "outDir": "build",
   "deviceName": "STM32F102C8",
@@ -53,7 +54,8 @@
             }
           ]
         },
-        "options": "null"
+        "options": "null",
+        "archExtensions": ""
       },
       "uploader": "OpenOCD",
       "uploadConfig": {
@@ -108,7 +110,8 @@
           "src/OLED",
           "lib/STM32F10x_StdPeriph_Driver",
           "lib/STM32F10x_StdPeriph_Driver/inc",
-          "lib/cJSON"
+          "lib/cJSON",
+          "src/APP"
         ],
         "libList": [],
         "defineList": [
@@ -191,5 +194,5 @@
       }
     }
   },
-  "version": "3.5"
+  "version": "3.6"
 }

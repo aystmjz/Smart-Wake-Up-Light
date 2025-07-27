@@ -2,8 +2,22 @@
 #define __SYS_H
 #include "stm32f10x.h"
 
+#define DEBUG_BAUD 115200
 // 设置当前调试模式 0:关闭调试 1:正常调试 2:STM32调试 3:ASRPRO调试 4:BT24-T调试
-#define DEBUG_MODE 1
+#define DEBUG_MODE_NONE     0  // 关闭调试
+#define DEBUG_MODE_NORMAL   1  // 正常调试
+#define DEBUG_MODE_STM32    2  // STM32调试
+#define DEBUG_MODE_ASRPRO   3  // ASRPRO调试
+#define DEBUG_MODE_BT24     4  // BT24-T调试
+
+#define DEBUG_MODE DEBUG_MODE_NORMAL // 当前使用的调试模式
+
+#define LOG_LEVEL_DEBUG    0
+#define LOG_LEVEL_INFO     1
+#define LOG_LEVEL_WARN     2
+#define LOG_LEVEL_ERROR    3
+
+#define DEBUG_LEVEL LOG_LEVEL_DEBUG  // 当前调试等级
 
 //位带操作,实现51类似的GPIO控制功能
 //具体实现思想,参考<<CM3权威指南>>第五章(87页~92页).

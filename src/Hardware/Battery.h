@@ -1,5 +1,6 @@
 #ifndef __BATTERY_H
 #define __BATTERY_H
+
 #include "sys.h"
 
 #define Battery_FULL 5174

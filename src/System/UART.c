@@ -29,13 +29,12 @@ volatile uint16_t ASRPRORxCounter;
 volatile uint16_t BT24RxCounter;
 volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
 volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
-char Debug_str[DEBUG_BUFF_LEN];
 
 /// @brief 初始化串口1(BT24)
 /// @param bound 波特率
 void uart1_init(uint32_t bound)
 {
-#if DEBUG_MODE == 4
+#if DEBUG_MODE == DEBUG_MODE_BT24T
 #else
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
@@ -131,7 +130,7 @@ void BT24_SendStr(char *SendBuf)
 
 void BT24_printf(char *SendBuf)
 {
-#if DEBUG_MODE == 4
+#if DEBUG_MODE == DEBUG_MODE_BT24
 #else
 	BT24_SendStr(SendBuf);
 #endif
@@ -159,7 +158,7 @@ void USART1_IRQHandler(void)
 				BT24RxCounter = 0;
 			}
 		}
-#if DEBUG_MODE == 3
+#if DEBUG_MODE == DEBUG_MODE_ASRPRO
 		while ((USART2->SR & 0X40) == 0)
 		{
 		} // 等待发送完成
@@ -194,7 +193,7 @@ void USART2_IRQHandler(void)
 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	{
 		ASRPRORxBuffer[ASRPRORxCounter++] = USART_ReceiveData(USART2);
-#if DEBUG_MODE == 1 || DEBUG_MODE == 3
+#if DEBUG_MODE == DEBUG_MODE_NORMAL || DEBUG_MODE == DEBUG_MODE_ASRPRO
 		while ((USART1->SR & 0X40) == 0)
 		{
 		} // 等待发送完成
@@ -203,10 +202,14 @@ void USART2_IRQHandler(void)
 		ASRPRORxCounter %= ASRPRO_UART_REC_LEN;
 	}
 }
-
-void Debug_printf(char *SendBuf)
+void Debug_printf(const char *format, ...)
 {
-#if DEBUG_MODE == 1 || DEBUG_MODE == 2
-	BT24_printf(SendBuf);
+#if DEBUG_MODE == DEBUG_MODE_NORMAL || DEBUG_MODE == DEBUG_MODE_STM32
+    static char Debug_buffer[DEBUG_BUFF_LEN];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(Debug_buffer, sizeof(Debug_buffer), format, args);
+    va_end(args);
+    BT24_SendStr(Debug_buffer);
 #endif
 }

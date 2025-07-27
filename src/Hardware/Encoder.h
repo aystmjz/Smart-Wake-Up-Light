@@ -2,8 +2,6 @@
 #define __ENCODER_H
 
 #include "sys.h"
-#include "Buzzer.h"
-
 
 void Encoder_Init(void);
 int16_t Encoder_GetCounter(void);

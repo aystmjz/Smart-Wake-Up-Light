@@ -5,19 +5,10 @@
 #include "I2C.h"
 #include <time.h>
 #include <stdio.h>
-#include "UART.h"
 
 #define DS3231_ADDRESS 0xD0
 #define DS3231_CONTROL 0x0E
 #define DS3231_STATUS 0x0F
-
-#define Time_Year (Time.tm_year + 1900)
-#define Time_Mon (Time.tm_mon + 1)
-#define Time_Day (Time.tm_mday)
-#define Time_Week (Time.tm_wday)
-#define Time_Hour (Time.tm_hour)
-#define Time_Min (Time.tm_min)
-#define Time_Sec (Time.tm_sec)
 
 #define Alarm_1 1
 #define Alarm_2 2
