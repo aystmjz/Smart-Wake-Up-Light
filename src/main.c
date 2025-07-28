@@ -1,12 +1,24 @@
-﻿#include "system_init.h"
+﻿#include "sys.h"
+#if BOOT_LOADER
+#include "bootloader.h"
+#else
+#include "system_init.h"
 #include "globals.h"
 #include "log.h"
 #include "settings_handler.h"
 #include "pwm_application.h"
 #include "bt24_application.h"
 #include "ui_display.h"
+#endif
+
+
+
 int main()
 {
+#if BOOT_LOADER
+	bootloader_main();
+#else
+	SCB->VTOR = FLASH_BASE | BOOTLOADER_SIZE;
 	uint8_t time_last = 0;
 	uint8_t key_num = 0, cmd_num = 0;
 
@@ -151,8 +163,10 @@ int main()
 			ASRPRO_ProcessCommand(cmd_num);
 		}
 	}
+#endif
 }
 
+#if !BOOT_LOADER
 void TIM2_IRQHandler(void) // 1ms
 {
 	static uint16_t Key_Counter = 0, Buzzer_Counter = 0, WakeUp_Counter = 0;
@@ -200,3 +214,4 @@ void TIM2_IRQHandler(void) // 1ms
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 	}
 }
+#endif

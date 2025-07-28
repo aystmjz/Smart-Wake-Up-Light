@@ -28,7 +28,7 @@ int fputc(int ch, FILE *f) // 重定义fputc函数
 volatile uint16_t ASRPRORxCounter;
 volatile uint16_t BT24RxCounter;
 volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
-volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
+volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	  // 接收缓冲
 
 /// @brief 初始化串口1(BT24)
 /// @param bound 波特率
@@ -126,6 +126,9 @@ void BT24_SendStr(char *SendBuf)
 		USART1->DR = (u8)*SendBuf;
 		SendBuf++;
 	}
+	while ((USART1->SR & 0X40) == 0)
+	{
+	} // 确保发送完成
 }
 
 void BT24_printf(char *SendBuf)
@@ -143,6 +146,18 @@ void BT24_Clear_Buff(void)
 	{
 		BT24RxBuffer[i] = 0;
 	}
+}
+
+void Debug_printf(const char *format, ...)
+{
+#if DEBUG_MODE == DEBUG_MODE_NORMAL || DEBUG_MODE == DEBUG_MODE_STM32
+	static char Debug_buffer[DEBUG_BUFF_LEN];
+	va_list args;
+	va_start(args, format);
+	vsnprintf(Debug_buffer, sizeof(Debug_buffer), format, args);
+	va_end(args);
+	BT24_SendStr(Debug_buffer);
+#endif
 }
 
 // BT24串口中断
@@ -187,6 +202,7 @@ void ASRPRO_printf(const char *format, ...)
 	va_end(args);
 }
 
+#if !BOOT_LOADER
 // ASRPRO串口中断
 void USART2_IRQHandler(void)
 {
@@ -202,14 +218,4 @@ void USART2_IRQHandler(void)
 		ASRPRORxCounter %= ASRPRO_UART_REC_LEN;
 	}
 }
-void Debug_printf(const char *format, ...)
-{
-#if DEBUG_MODE == DEBUG_MODE_NORMAL || DEBUG_MODE == DEBUG_MODE_STM32
-    static char Debug_buffer[DEBUG_BUFF_LEN];
-    va_list args;
-    va_start(args, format);
-    vsnprintf(Debug_buffer, sizeof(Debug_buffer), format, args);
-    va_end(args);
-    BT24_SendStr(Debug_buffer);
 #endif
-}

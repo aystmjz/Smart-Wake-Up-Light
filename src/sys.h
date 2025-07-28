@@ -2,6 +2,8 @@
 #define __SYS_H
 #include "stm32f10x.h"
 
+#define BOOT_LOADER 1
+
 #define DEBUG_BAUD 115200
 // 设置当前调试模式 0:关闭调试 1:正常调试 2:STM32调试 3:ASRPRO调试 4:BT24-T调试
 #define DEBUG_MODE_NONE     0  // 关闭调试

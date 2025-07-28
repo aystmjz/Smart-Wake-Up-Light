@@ -4,8 +4,7 @@
   "dependenceList": [],
   "srcDirs": [
     "src",
-    "lib",
-    "src/APP"
+    "lib"
   ],
   "outDir": "build",
   "deviceName": "STM32F102C8",
@@ -47,10 +46,20 @@
               "id": 1,
               "mem": {
                 "startAddr": "0x08000000",
-                "size": "0x10000"
+                "size": "0x2000"
               },
               "isChecked": true,
               "isStartup": true
+            },
+            {
+              "tag": "IROM",
+              "id": 2,
+              "mem": {
+                "startAddr": "0x08002000",
+                "size": "0xE000"
+              },
+              "isChecked": false,
+              "isStartup": false
             }
           ]
         },
@@ -111,7 +120,8 @@
           "lib/STM32F10x_StdPeriph_Driver",
           "lib/STM32F10x_StdPeriph_Driver/inc",
           "lib/cJSON",
-          "src/APP"
+          "src/APP",
+          "src/IAP"
         ],
         "libList": [],
         "defineList": [

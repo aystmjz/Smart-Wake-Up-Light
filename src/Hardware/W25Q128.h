@@ -34,7 +34,7 @@
 #define W25Q128_DUMMY_BYTE 0xFF
 #define W25Q128_MAX_BLOCK 240
 
-#define SETTING_ADDRESS 0x00
+#define SETTING_ADDRESS 0xFFF000
 
 typedef struct
 {
