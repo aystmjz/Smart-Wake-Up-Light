@@ -2,7 +2,7 @@
 
 // 加入以下代码,支持printf函数,而不需要选择use MicroLIB
 
-#if 1
+#ifndef BUILD_BOOT_LOADER
 
 #pragma import(__use_no_semihosting) // 标准库需要的支持函数
 struct __FILE
@@ -32,7 +32,7 @@ volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	  // 接收缓冲
 
 /// @brief 初始化串口1(BT24)
 /// @param bound 波特率
-void uart1_init(uint32_t bound)
+void UART1_Init(uint32_t bound)
 {
 #if DEBUG_MODE == DEBUG_MODE_BT24T
 #else
@@ -71,7 +71,7 @@ void uart1_init(uint32_t bound)
 
 /// @brief 初始化串口2(ASRPRO)
 /// @param bound 波特率
-void uart2_init(uint32_t bound)
+void UART2_Init(uint32_t bound)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
@@ -109,8 +109,8 @@ void uart2_init(uint32_t bound)
 /// @param bound 波特率
 void Uart_Init(uint32_t bound)
 {
-	uart1_init(bound);
-	uart2_init(bound);
+	UART1_Init(bound);
+	UART2_Init(bound);
 }
 
 // 串口1(BT24)-----------------------------------------------------
@@ -126,9 +126,6 @@ void BT24_SendStr(char *SendBuf)
 		USART1->DR = (u8)*SendBuf;
 		SendBuf++;
 	}
-	while ((USART1->SR & 0X40) == 0)
-	{
-	} // 确保发送完成
 }
 
 void BT24_printf(char *SendBuf)
@@ -160,6 +157,7 @@ void Debug_printf(const char *format, ...)
 #endif
 }
 
+#ifndef BUILD_BOOT_LOADER
 // BT24串口中断
 void USART1_IRQHandler(void)
 {
@@ -182,6 +180,7 @@ void USART1_IRQHandler(void)
 		BT24RxCounter %= BT24_UART_REC_LEN;
 	}
 }
+#endif
 
 // 串口2(ASRPRO)-----------------------------------------------------
 
@@ -202,7 +201,7 @@ void ASRPRO_printf(const char *format, ...)
 	va_end(args);
 }
 
-#if !BOOT_LOADER
+#ifndef BUILD_BOOT_LOADER
 // ASRPRO串口中断
 void USART2_IRQHandler(void)
 {

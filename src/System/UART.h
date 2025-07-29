@@ -16,8 +16,8 @@ extern volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
 extern volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
 extern char Debug_str[DEBUG_BUFF_LEN];
 
-void uart1_init(uint32_t bound);
-void uart2_init(uint32_t bound);
+void UART1_Init(uint32_t bound);
+void UART2_Init(uint32_t bound);
 void Uart_Init(uint32_t bound);
 void ASRPRO_printf(const char *format, ...);
 void Debug_printf(const char *format, ...);

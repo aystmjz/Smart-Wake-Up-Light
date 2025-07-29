@@ -1,24 +1,15 @@
-﻿#include "sys.h"
-#if BOOT_LOADER
-#include "bootloader.h"
-#else
-#include "system_init.h"
+﻿#include "system_init.h"
 #include "globals.h"
 #include "log.h"
 #include "settings_handler.h"
 #include "pwm_application.h"
 #include "bt24_application.h"
 #include "ui_display.h"
-#endif
 
-
-
+#ifndef BUILD_BOOT_LOADER
 int main()
 {
-#if BOOT_LOADER
-	bootloader_main();
-#else
-	SCB->VTOR = FLASH_BASE | BOOTLOADER_SIZE;
+	SCB->VTOR = FLASH_BASE | BOOTLOADER_SIZE_SYS;
 	uint8_t time_last = 0;
 	uint8_t key_num = 0, cmd_num = 0;
 
@@ -132,7 +123,7 @@ int main()
 			{
 				EPD_WeakUp();
 				EPD_WhiteScreen_White();
-				OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
+				// OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
 				OLED_Display(Image_BW, Part);
 				EPD_DeepSleep();
 				PWM_Run(&Set.PwmMod);
@@ -163,10 +154,8 @@ int main()
 			ASRPRO_ProcessCommand(cmd_num);
 		}
 	}
-#endif
 }
 
-#if !BOOT_LOADER
 void TIM2_IRQHandler(void) // 1ms
 {
 	static uint16_t Key_Counter = 0, Buzzer_Counter = 0, WakeUp_Counter = 0;

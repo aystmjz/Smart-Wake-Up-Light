@@ -50,6 +50,7 @@ uint8_t EXTI9_Get_Flag(void)
     return Flag;
 }
 
+#ifndef BUILD_BOOT_LOADER
 void EXTI0_IRQHandler(void)
 {
     if (EXTI_GetITStatus(EXTI_Line0) != RESET) // 判断某个线上的中断是否发生
@@ -58,6 +59,7 @@ void EXTI0_IRQHandler(void)
         EXTI_ClearITPendingBit(EXTI_Line0); // 清除 LINE0 上的中断标志位
     }
 }
+#endif
 
 // 外部中断5配置
 void EXTI5_Init(void)
@@ -101,6 +103,7 @@ void EXTI9_Init(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 }
 
+#ifndef BUILD_BOOT_LOADER
 void EXTI9_5_IRQHandler(void)
 {
     if (EXTI_GetITStatus(EXTI_Line5) != RESET) // 判断某个线上的中断是否发生
@@ -114,3 +117,4 @@ void EXTI9_5_IRQHandler(void)
         EXTI_ClearITPendingBit(EXTI_Line9); // 清除 LINE9 上的中断标志位
     }
 }
+#endif

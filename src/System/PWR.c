@@ -9,5 +9,5 @@ void PWR_STOP(void)
 {
     PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
     SystemInit();
-    SCB->VTOR = FLASH_BASE | BOOTLOADER_SIZE;
+    SCB->VTOR = FLASH_BASE | BOOTLOADER_SIZE_SYS;
 }

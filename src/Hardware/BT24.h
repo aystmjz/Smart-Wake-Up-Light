@@ -21,7 +21,7 @@
 #define ATcmd_RxBuffer BT24RxBuffer
 #define ATcmd_RxCounter BT24RxCounter
 #define ATcmd_Clear_Buffer BT24_Clear_Buff
-#define ATcmd_UartInit uart1_init
+#define ATcmd_UartInit UART1_Init
 
 void BT24_Init(char *DeviceName);
 void BT24_Reset(void);
