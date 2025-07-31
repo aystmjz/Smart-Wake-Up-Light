@@ -4,6 +4,26 @@
 #include "SPI.h"
 #include "sys.h"
 
+// Flash 总容量：128Mbit = 16MB
+#define W25Q128_FLASH_SIZE_BYTES          (16UL * 1024 * 1024)    // 16MB = 16777216 Bytes
+
+// 页（Page）结构：每页 256 字节
+#define W25Q128_PAGE_SIZE                 (256U)                  // 256 Bytes/Page
+#define W25Q128_TOTAL_PAGE_COUNT          (W25Q128_FLASH_SIZE_BYTES / W25Q128_PAGE_SIZE) // 65536 pages
+
+// 扇区（Sector）结构：每扇区 4KB
+#define W25Q128_SECTOR_SIZE               (4U * 1024U)            // 4096 Bytes/Sector
+#define W25Q128_TOTAL_SECTOR_COUNT        (W25Q128_FLASH_SIZE_BYTES / W25Q128_SECTOR_SIZE) // 4096 sectors
+
+// 块（Block）结构：每块 64KB = 16 个扇区
+#define W25Q128_BLOCK_SIZE                (64U * 1024U)           // 65536 Bytes/Block
+#define W25Q128_TOTAL_BLOCK_COUNT         (W25Q128_FLASH_SIZE_BYTES / W25Q128_BLOCK_SIZE)  // 256 blocks
+
+// 最大索引
+#define W25Q128_MAX_PAGE_INDEX            (W25Q128_TOTAL_PAGE_COUNT  - 1U)
+#define W25Q128_MAX_SECTOR_INDEX          (W25Q128_TOTAL_SECTOR_COUNT - 1U)
+#define W25Q128_MAX_BLOCK_INDEX           (W25Q128_TOTAL_BLOCK_COUNT  - 1U)
+
 #define W25Q128_WRITE_ENABLE 0x06
 #define W25Q128_WRITE_DISABLE 0x04
 #define W25Q128_READ_STATUS_REGISTER_1 0x05
@@ -32,9 +52,6 @@
 #define W25Q128_FAST_READ_QUAD_IO 0xEB
 #define W25Q128_OCTAL_WORD_READ_QUAD_IO 0xE3
 #define W25Q128_DUMMY_BYTE 0xFF
-#define W25Q128_MAX_BLOCK 240
-#define W25Q128_BLOCK_SIZE 0x10000
-#define W25Q128_SIZE_BYTES (256 * W25Q128_BLOCK_SIZE)
 
 #define SETTING_ADDRESS 0xFFF000
 

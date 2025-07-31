@@ -8,33 +8,26 @@
 #include "log.h"
 #include "Delay.h"
 
-// 添加XMODEM协议相关定义
-#define SOH 0x01  // 数据包开始标志
-#define STX 0x02  // 1024字节数据包开始标志
-#define EOT 0x04  // 传输结束
-#define ACK 0x06  // 确认响应
-#define NAK 0x15  // 非确认响应
-#define CAN 0x18  // 取消传输
-#define SUB 0x1A  // 填充字符
+#define SOH 0x01 // 数据包开始标志
+#define EOT 0x04 // 传输结束
+#define ACK 0x06 // 确认响应
+#define NAK 0x15 // 非确认响应
+#define CAN 0x18 // 取消传输
 
-#define XMODEM_BLOCK_SIZE 128
+#define XMODEM_PACKET_SIZE 128
+#define XMODEM_IAP_BUF_SIZE 1024
 
-/* Bootloader和APP地址定义 */
-#define FLASH_BASE_ADDR 0x08000000UL /*!< Flash基地址 */
-#define FLASH_END_ADDR 0x0800FFFFUL  /*!< Flash结束地址(64KB) */
+#define FLASH_BASE_ADDR STM32_FLASH_BASE                     /*!< Flash基地址 */
+#define FLASH_END_ADDR (STM32_FLASH_BASE + STM32_FLASH_SIZE) /*!< Flash结束地址(64KB) */
 
-/* Bootloader相关定义 */
 #define BOOTLOADER_SIZE BOOTLOADER_SIZE_SYS /*!< Bootloader大小 */
 #define BOOTLOADER_ADDR FLASH_BASE_ADDR     /*!< Bootloader起始地址 */
 
-/* APP相关定义 */
 #define APP_ADDR (BOOTLOADER_ADDR + BOOTLOADER_SIZE) /*!< APP起始地址 */
 #define APP_SIZE (FLASH_END_ADDR - APP_ADDR + 1)     /*!< APP可用空间 */
 
-/* 向量表偏移 */
-#define VTOR_ADDR APP_ADDR /*!< 向量表地址 */
+#define VTOR_ADDR APP_ADDR /* 向量表偏移 */
 
-/* 栈指针和复位处理函数地址 */
 #define APP_STACK_ADDR (APP_ADDR)             /*!< APP栈指针地址 */
 #define APP_RESET_HANDLER_ADDR (APP_ADDR + 4) /*!< APP复位处理函数地址 */
 
@@ -43,16 +36,15 @@
 #define APP_NUM 10
 #define APP_VALID 0x5A
 
-typedef enum {
-    STATE_IDLE = 0,           // 系统初始化
-    STATE_OTA,          // OTA准备就绪
-    STATE_CHECK_APP_VALID,    // 检查APP有效性
-    STATE_MUNU,          // 进入命令行
+typedef enum
+{
+    STATE_IDLE = 0,        // 系统初始化
+    STATE_OTA,             // OTA准备就绪
+    STATE_MUNU,            // 进入命令行
     STATE_SYSTEM,          // 命令行系统处理
-    STATE_JUMP_TO_APP,        // 跳转到APP
-    STATE_ERROR               // 错误状态
+    STATE_JUMP_TO_APP,     // 跳转到APP
+    STATE_ERROR            // 错误状态
 } BOOTLOADER_STATE;
-
 
 typedef struct
 {

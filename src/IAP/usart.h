@@ -9,7 +9,7 @@
 
 #define UART1_TX_SIZE 128
 #define UART1_RX_SIZE 2048
-#define UART1_RX_MAX 256
+#define UART1_RX_MAX 256 // 串口一次能接受的数据量
 #define BLOCK_NUM 10
 
 #define UART_DATA_AVAILABLE (UCB_DATA.RxDataOUT != UCB_DATA.RxDataIN)
@@ -35,6 +35,7 @@ void uart1_init(uint32_t bound);
 void uart1_printf(const char *format, ...);
 void uart1_send_byte(uint8_t byte);
 uint16_t uart1_read_data(uint8_t *buffer, uint16_t max_len);
+uint8_t uart1_scanf(const char *format, ...);
 void uart1_update_endptr(void);
 
 #endif

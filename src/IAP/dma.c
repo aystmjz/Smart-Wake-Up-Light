@@ -1,6 +1,5 @@
 #include "dma.h"
 
-
 void dma_init(DMA_Channel_TypeDef *DMA_CHx, uint32_t cpar, uint32_t cmar, uint16_t cndtr)
 {
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
@@ -16,16 +15,8 @@ void dma_init(DMA_Channel_TypeDef *DMA_CHx, uint32_t cpar, uint32_t cmar, uint16
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte; // 数据宽度为八位
     DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;     // 数据宽度为八位
     DMA_InitStructure.DMA_Mode               = DMA_Mode_Normal;             // 正常传输模式
-    DMA_InitStructure.DMA_Priority           = DMA_Priority_Medium;         // 优先级设置
+    DMA_InitStructure.DMA_Priority           = DMA_Priority_High;           // 优先级设置
     DMA_InitStructure.DMA_M2M                = DMA_M2M_Disable;             // 没有内存到内存的传输
     DMA_Init(DMA_CHx, &DMA_InitStructure);
-    DMA_Cmd(DMA_CHx, ENABLE);
-}
-
-// 使能dma1的通道3，因为spi输出对应的是此通道
-void DMA1_Transfer(DMA_Channel_TypeDef *DMA_CHx, uint16_t CounterSize)
-{
-    DMA_Cmd(DMA_CHx, DISABLE);
-    DMA_SetCurrDataCounter(DMA_CHx, CounterSize);
     DMA_Cmd(DMA_CHx, ENABLE);
 }

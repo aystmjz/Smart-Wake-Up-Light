@@ -145,6 +145,36 @@ void uart1_update_endptr(void)
     }
 }
 
+/**
+ * @brief  从串口接收缓冲区读取格式化数据
+ * @param  format: 格式化字符串
+ * @param  ...: 可变参数列表
+ * @retval 成功读取并解析的数据项数量
+ */
+uint8_t uart1_scanf(const char *format, ...)
+{
+    static char input_buffer[UART1_RX_MAX];
+    uint16_t data_len;
+    uint8_t result = 0;
+    
+    // 从串口接收缓冲区读取数据
+    data_len = uart1_read_data((uint8_t*)input_buffer, sizeof(input_buffer) - 1);
+    
+    if (data_len > 0)
+    {
+        // 确保字符串以'\0'结尾
+        input_buffer[data_len] = '\0';
+        
+        // 使用sscanf解析数据
+        va_list args;
+        va_start(args, format);
+        result = vsscanf(input_buffer, format, args);
+        va_end(args);
+    }
+    
+    return result;
+}
+
 
 // 串口1中断
 #ifdef BUILD_BOOT_LOADER

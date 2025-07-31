@@ -2,7 +2,9 @@
 #define __SYS_H
 #include "stm32f10x.h"
 
-#define BOOTLOADER_SIZE_SYS 0x4000
+#define BOOT_FLAG_ADDR  (0x20003FF0)
+#define BOOT_FLAG_VALUE (0xDEADBEEF)
+#define BOOTLOADER_SIZE_SYS 0x4800
 #define BUILD_BOOT_LOADER
 
 #define DEBUG_BAUD 115200

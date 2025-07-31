@@ -265,6 +265,12 @@ void BT24_ProcessCommand(void)
                 Delay_ms(100);
                 NVIC_SystemReset();
             }
+            else if (strstr(extra_cmd, "BL"))
+            {
+                Delay_ms(100);
+                *(volatile uint32_t*)BOOT_FLAG_ADDR = BOOT_FLAG_VALUE;
+                NVIC_SystemReset();
+            }
             Refresh_Flag = 1;
             break;
         case 1:
