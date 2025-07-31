@@ -9,12 +9,25 @@
     </scroll-view>
 
     <view class="input-container">
-      <input 
-        class="send-input" 
-        placeholder="输入要发送的数据" 
-        value="{{sendText}}"
-        bindinput="onSendTextChange" />
+      <input class="send-input" placeholder="输入要发送的数据" value="{{sendText}}" bindinput="onSendTextChange" />
       <button class="send-btn" bindtap="sendData">发送数据</button>
+    </view>
+
+    <!-- XMODEM 文件传输部分 -->
+    <view class="xmodem-section">
+      <view class="file-progress-wrapper" wx:if="{{selectedFile}}" bindtap="startXmodemTransfer"
+        bindlongpress="chooseFile">
+        <view class="file-progress-bar" style="width: {{progress}}%;"></view>
+        <view class="file-progress-text">
+          {{ xmodemState == 'idle' ? ('点击发送文件: ' + selectedFile.name + ' (' + selectedFile.size + ' 字节)') :
+             xmodemState == 'waiting' ? '等待设备响应中...' :
+             xmodemState == 'sending' ? ('正在发送: ' + selectedFile.name + '（' + progress + '%）') :
+             xmodemState == 'complete' ? ('发送完成，共 ' + selectedFile.size + ' 字节' +',耗时 '  + transferTime + " 秒") :
+             xmodemState == 'error' ? '发送失败，请重试' :
+             '' }}
+        </view>
+      </view>
+      <button class="action-btn" bindtap="chooseFile" wx:if="{{!selectedFile}}">选择文件</button>
     </view>
 
     <view class="actions">

@@ -41,6 +41,10 @@ Page({
         description: "重启设备",
       },
       {
+        command: "BL",
+        description: "进入Bootloader",
+      },
+      {
         command: "VOICE",
         description: "唤醒语音助手",
       },
@@ -208,7 +212,14 @@ Page({
         data = JSON.parse(recStr);
       } catch (e) {
         console.log("收到非JSON数据: ", recStr);
-        app.addDebugLog(recStr);
+        if (!(recStr.charCodeAt(0) === 0x06 && recStr.length === 1))
+          app.addDebugLog(recStr);
+
+        const pages = getCurrentPages();
+        const debugPage = pages.find(page => page.route === "pages/debug/debug");
+        if (debugPage) {
+          debugPage.handleXmodemResponse(recStr);
+        }
         return;
       }
 
@@ -237,7 +248,7 @@ Page({
     if (!this.data.connected) {
       this.data.dataSynced = false;
       wx.switchTab({
-        url: '/pages/bluetooth/connect/connect', 
+        url: '/pages/bluetooth/connect/connect',
       });
       wx.showToast({
         title: "请先连接蓝牙设备",
@@ -291,44 +302,58 @@ Page({
       characteristicId: app.globalData.mtxduuid,
       value: buffer,
       success: (res) => {
-        if (this.data.sendText === "TIME" && this.data.Cmd == 0) {
-          wx.showModal({
-            title: "同步时间成功",
-            content: now.toString(),
-            showCancel: false,
-            confirmText: "确定",
-          });
-        } else if (this.data.sendText === "RESET" && this.data.Cmd == 0) {
-          wx.switchTab({
-            url: '/pages/debug/debug',
-          });
-          wx.showToast({
-            title: "设备正在重启",
-            icon: "none",
-          });
-        } else if (this.data.sendText === "VOICE" && this.data.Cmd == 0) {
-          wx.showModal({
-            title: "语音助手已唤醒",
-            showCancel: false,
-            confirmText: "确定",
-          });
 
-        } else if (this.data.sendText.includes("NAME") && this.data.Cmd == 0) {
-          wx.showModal({
-            title: "已更改设备名称",
-            content: "请重新连接设备",
-            showCancel: false,
-            confirmText: "确定",
+        if (this.data.Cmd == 0) {
+          if (this.data.sendText === "TIME") {
+            wx.showModal({
+              title: "同步时间成功",
+              content: now.toString(),
+              showCancel: false,
+              confirmText: "确定",
+            });
+          } else if (this.data.sendText === "RESET") {
+            wx.switchTab({
+              url: '/pages/debug/debug',
+            });
+            wx.showToast({
+              title: "设备正在重启",
+              icon: "none",
+            });
+          } else if (this.data.sendText === "VOICE") {
+            wx.showModal({
+              title: "语音助手已唤醒",
+              showCancel: false,
+              confirmText: "确定",
+            });
+
+          } else if (this.data.sendText.includes("NAME")) {
+            wx.showModal({
+              title: "已更改设备名称",
+              content: "请重新连接设备",
+              showCancel: false,
+              confirmText: "确定",
+            });
+          } else if (this.data.sendText.includes("BL")) {
+            wx.switchTab({
+              url: '/pages/debug/debug',
+            });
+            wx.showToast({
+              title: "设备正在进入Bootloader",
+              icon: "none",
+            });
+          } else {
+            wx.showToast({
+              title: "数据命令成功",
+              icon: "none",
+            });
+          }
+          this.setData({
+            sendText: "",
           });
         } else {
           wx.showToast({
             title: "数据发送成功",
             icon: "none",
-          });
-        }
-        if (this.data.Cmd == 0) {
-          this.setData({
-            sendText: "",
           });
         }
         console.log("数据发送成功", res);
