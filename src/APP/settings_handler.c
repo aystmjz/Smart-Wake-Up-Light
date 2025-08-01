@@ -323,7 +323,7 @@ void KeyNumber_Set()
 
 	KeyNum = Key_Clear();
 	EncoderNum = Encoder_Get_Div4();
-	while (KeyNum != 1)
+	while (!KeyNum)
 	{
 		KeyNum = Key_GetNumber();
 		EncoderNum = Encoder_Get_Div4();
@@ -345,7 +345,7 @@ void KeyNumber_Set()
 		KeyNumber_Set_Other();
 		break;
 	case 2:
-		KeyNumber_Set_Other();
+
 		break;
 	}
 }

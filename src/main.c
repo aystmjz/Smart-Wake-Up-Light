@@ -22,6 +22,22 @@ int main()
 	// OLED_Display(Image_BW, Part);
 	// while (1)
 	// {
+	// 	key_num = Key_GetNumber();
+	// 	if (key_num)
+	// 	{
+	// 		switch (key_num)
+	// 		{
+	// 		case KEY_CLICK:
+	// 			LOG_INFO("[EVENT] Key Short Pressed\r\n");
+	// 			break;
+	// 		case KEY_LONG:
+	// 			LOG_INFO("[EVENT] Key Long Pressed\r\n");
+	// 			break;
+	// 		case KEY_DOUBLE:
+	// 			LOG_INFO("[EVENT] Key Double Clicked\r\n");
+	// 			break;
+	// 		}
+	// 	}
 	// 	Delay_ms(100);
 	// }
 
@@ -33,16 +49,16 @@ int main()
 			BUZ_Flag = 0;
 			switch (key_num)
 			{
-			case 1:
+			case KEY_CLICK:
 				LOG_INFO("[EVENT] Key Short Pressed\r\n");
 				break;
-			case 2:
+			case KEY_LONG:
 				LOG_INFO("[EVENT] Key Long Pressed\r\n");
 				EPD_WeakUp();
 				KeyNumber_Set();
 				Key_GetNumber();
 				break;
-			case 3:
+			case KEY_DOUBLE:
 				LOG_INFO("[EVENT] Key Double Clicked\r\n");
 				WakeUp_Flag = 1;
 				break;

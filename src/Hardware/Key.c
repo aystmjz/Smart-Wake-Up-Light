@@ -51,11 +51,11 @@ uint8_t Key_GetNumber(void)
 	uint8_t temp = Key_KeyNumber;
 	if (temp)
 	{
-		Key_KeyNumber = 0;
+		Key_KeyNumber = KEY_NONE;
 		return temp;
 	}
 	else
-		return 0;
+		return KEY_NONE;
 }
 
 uint8_t Key_Clear(void)
@@ -88,18 +88,23 @@ void Key_Entry(void)
 	{
 		ClickCount++;
 		if (ClickCount >= 2)
-			Key_KeyNumber = 3;
-		else
-			Key_KeyNumber = 1;
+			Key_KeyNumber = KEY_DOUBLE;
 		HoldTimer = 0;
 		Buzzer_Flag = 1;
 	}
 	else if (LastState == 1 && NowState == 1) // 持续按住
 	{
 		HoldTimer++;
-		if (HoldTimer > 20)
+	}
+	else if (LastState == 1 && NowState == 0) // 松开按键
+	{
+		if (HoldTimer < 10)
 		{
-			Key_KeyNumber = 2; // 长按事件
+			Key_KeyNumber = KEY_CLICK; // 单击事件
+		}
+		else
+		{
+			Key_KeyNumber = KEY_LONG; // 长按事件
 		}
 	}
 
