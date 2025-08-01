@@ -5,7 +5,7 @@
 #define BOOT_FLAG_ADDR  (0x20003FF0)
 #define BOOT_FLAG_VALUE (0xDEADBEEF)
 #define BOOTLOADER_SIZE_SYS 0x4800
-#define BUILD_BOOT_LOADER
+//#define BUILD_BOOT_LOADER
 
 #define DEBUG_BAUD 115200
 // 设置当前调试模式 0:关闭调试 1:正常调试 2:STM32调试 3:ASRPRO调试 4:BT24-T调试

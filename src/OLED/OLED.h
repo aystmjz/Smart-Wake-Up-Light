@@ -10,6 +10,11 @@
 #include "LED.h"
 #include "OLED_Data.h"
 
+#if defined(OLED_UNICODE_8X16FONT_ADDR) || defined(OLED_UNICODE_6X12FONT_ADDR)
+#include "W25Q128.h"
+#endif
+
+
 //-----------------OLED端口定义----------------
 
 #define OLED_SCL_Clr() GPIO_ResetBits(GPIOA, GPIO_Pin_5) // SCL
@@ -50,10 +55,12 @@ typedef struct
 extern PAINT Paint;
 extern u8 Image_BW[OLED_W * OLED_H / 8];
 
+#define OLED_PRINTF_BUF_SIZE 1024
+
 #define OLED_6X8 8
 #define OLED_6X12 12
 #define OLED_8X16 16
-#define OLED_12X24 24
+//#define OLED_12X24 24
 #define OLED_52X104 104
 
 #define ROTATE_0 0     // 屏幕正向显示
@@ -83,13 +90,16 @@ void OLED_DrawPoint(u16 Xpoint, u16 Ypoint, u16 Color);                         
 void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color);               // 画线
 void OLED_DrawRectangle(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color, u8 mode); // 画矩形
 void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode);        // 画圆
-void OLED_DrawChart(u16 Xstart, u16 Ystart,u16 Width, u16 Height, u8* Data,u8 Num, u16 Color);
+void OLED_DrawChart(u16 Xstart, u16 Ystart, u16 Width, u16 Height, u8 *Data, u8 Num, u16 Color);
 
 void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color);                       // 显示字符
 void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color);               // 显示数字
 void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color);                  // 显示中文
 void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color);                  // 显示字符串
 void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Color); // 显示图片
+#ifdef OLED_USE_RLE
+void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleData, const u16 *Image_rleIndex, u8 ImageIndex, u16 Color);
+#endif
 
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...);
 void OLED_Display(u8 *Image, u8 Mode); // 更新到屏幕(局刷/全刷)

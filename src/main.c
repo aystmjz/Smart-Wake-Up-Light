@@ -15,6 +15,15 @@ int main()
 
 	System_Init();
 	key_num = Key_GetNumber();
+	// OLED_Printf(0, 0, OLED_6X12, BLACK, "中文测试：你好，世界！这是一个用于 Unicode 字库显示测试的示例文本。");
+	// OLED_Display(Image_BW, Part);
+	// Delay_ms(2000);
+	// OLED_RLE_ShowImage(0, 0, OLED_W, OLED_H, Image_RLE, Image_RLE_index, 0, BLACK);
+	// OLED_Display(Image_BW, Part);
+	// while (1)
+	// {
+	// 	Delay_ms(100);
+	// }
 
 	while (1)
 	{
@@ -60,14 +69,9 @@ int main()
 			}
 
 			UI_Display_MainScreen();
-		}
-
-		if (Refresh_Flag)
-		{
-			OLED_Display(Image_BW, Part);
 			EPD_DeepSleep();
+			Refresh_Flag = 0;
 		}
-		Refresh_Flag = 0;
 
 		if (time_last != Time_Min)
 		{
@@ -123,7 +127,7 @@ int main()
 			{
 				EPD_WeakUp();
 				EPD_WhiteScreen_White();
-				// OLED_ShowImage(0, 0, OLED_W, OLED_H, Image_1, BLACK);
+				OLED_RLE_ShowImage(0, 0, OLED_W, OLED_H, Image_RLE, Image_RLE_index, 0, BLACK);
 				OLED_Display(Image_BW, Part);
 				EPD_DeepSleep();
 				PWM_Run(&Set.PwmMod);

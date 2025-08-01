@@ -286,10 +286,15 @@ void Paint_SetPixel(u16 Xpoint, u16 Ypoint, u16 Color)
     u16 X, Y;
     u32 Addr;
     u8 Rdata;
+
+    if (Xpoint >= Paint.Height || Ypoint >= Paint.Width)
+    {
+        return; // 超出边界，直接返回
+    }
+
     switch (Paint.Rotate)
     {
     case 0:
-
         X = Paint.WidthMemory - Ypoint - 1;
         Y = Xpoint;
         break;
@@ -471,6 +476,47 @@ void OLED_DrawChart(u16 Xstart, u16 Ystart, u16 Width, u16 Height, u8 *Data, u8 
     }
 }
 
+#ifdef OLED_USE_RLE
+/**
+ * RLE解压缩函数，根据RLE压缩数据和索引表解码指定位置的数据
+ * @param rleData: RLE压缩数据数组，存储交替的值和计数对
+ * @param rleIndex: 索引表数组，记录每个字符数据块的起始位置
+ * @param charIndex: 要解压的字符索引
+ * @param dataIndex: 在解压后的数据中要获取的字节位置索引
+ * @return: 返回解压后指定位置的字节值，如果越界则返回0
+ */
+uint8_t RLE_Decompress(const uint8_t *rleData, const uint16_t *rleIndex, uint8_t charIndex, uint16_t dataIndex)
+{
+    uint16_t start, end, pos;
+
+    if (rleIndex[0] < (charIndex + 1))
+        return 0;
+
+    if (charIndex == 0)
+    {
+        start = 0;
+    }
+    else
+    {
+        start = rleIndex[charIndex];
+    }
+    end = rleIndex[charIndex + 1];
+    pos = start;
+
+    while (pos < end)
+    {
+        uint8_t value = rleData[pos++];
+        uint8_t count = rleData[pos++];
+        if (dataIndex < count)
+            return value;
+        dataIndex -= count;
+    }
+
+    // 如果越界，返回0
+    return 0;
+}
+#endif
+
 /**
  * @brief 显示字符
  * @param X 字符显示的起始X坐标
@@ -508,13 +554,21 @@ void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
         {
             temp = OLED_ASCII1608[Char1][i];
         } // 调用1608字体
+#ifdef OLED_12X24
         else if (Size == OLED_12X24)
         {
+
             temp = OLED_ASCII2412[Char1][i];
+
         } // 调用2412字体
+#endif
         else if (Size == OLED_52X104)
         {
+#ifdef OLED_USE_RLE
+            temp = RLE_Decompress(OLED_ASCII10452_RLE, OLED_ASCII10452_RLE_index, Char1, i);
+#else
             temp = OLED_ASCII10452[Char1][i];
+#endif
         }
         else
             return;
@@ -576,6 +630,52 @@ void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color)
     }
 }
 
+#ifdef OLED_USE_RLE
+/**
+ * 在OLED屏幕上显示RLE压缩格式的图像
+ * @param X 图像显示的起始X坐标
+ * @param Y 图像显示的起始Y坐标
+ * @param Sizex 图像的宽度(像素)
+ * @param Sizey 图像的高度(像素)
+ * @param Image_rleData RLE压缩数据数组指针
+ * @param Image_rleIndex RLE索引数组指针
+ * @param ImageIndex 当前图像在RLE数据中的索引
+ * @param Color 图像显示颜色
+ */
+void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleData, const u16 *Image_rleIndex, u8 ImageIndex, u16 Color)
+{
+    u16 j = 0;
+    u16 i, n, temp, m;
+    u16 x0, y0;
+    X += 1, Y += 1, x0 = X, y0 = Y;
+    Sizey = Sizey / 8 + ((Sizey % 8) ? 1 : 0);
+    for (n = 0; n < Sizey; n++)
+    {
+        for (i = 0; i < Sizex; i++)
+        {
+            temp = RLE_Decompress(Image_rleData, Image_rleIndex, ImageIndex, j);
+            j++;
+            for (m = 0; m < 8; m++)
+            {
+                if (temp & 0x01)
+                    OLED_DrawPoint(X, Y, Color);
+                else
+                    OLED_DrawPoint(X, Y, !Color);
+                temp >>= 1;
+                Y++;
+            }
+            X++;
+            if ((X - x0) == Sizex)
+            {
+                X = x0;
+                y0 = y0 + 8;
+            }
+            Y = y0;
+        }
+    }
+}
+#endif
+
 /**
  * @brief 显示图片
  * @param X 图片显示的起始X坐标
@@ -618,6 +718,120 @@ void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Col
     }
 }
 
+#if defined(OLED_UNICODE_8X16FONT_ADDR) || defined(OLED_UNICODE_6X12FONT_ADDR)
+
+uint16_t utf8_to_unicode16(const uint8_t *utf8)
+{
+    if ((utf8[0] & 0x80) == 0x00)
+    {
+        // 1-byte UTF-8: 0xxxxxxx
+        return utf8[0];
+    }
+    else if ((utf8[0] & 0xE0) == 0xC0)
+    {
+        // 2-byte UTF-8: 110xxxxx 10xxxxxx
+        return ((utf8[0] & 0x1F) << 6) |
+               (utf8[1] & 0x3F);
+    }
+    else if ((utf8[0] & 0xF0) == 0xE0)
+    {
+        // 3-byte UTF-8: 1110xxxx 10xxxxxx 10xxxxxx
+        return ((utf8[0] & 0x0F) << 12) |
+               ((utf8[1] & 0x3F) << 6) |
+               (utf8[2] & 0x3F);
+    }
+    else
+    {
+        // 不支持超过3字节（U+10000 以上）
+        return 0xFFFD; // 返回替代字符 �
+    }
+}
+
+/**
+ * @brief 显示汉字单字
+ * @param X 汉字显示的起始X坐标
+ * @param Y 汉字显示的起始Y坐标
+ * @param Hanzi 要显示的汉字，范围：字库字符
+ * @param Size 汉字的字体大小
+ * @param Color 显示颜色
+ */
+void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单字打印;
+{
+    u8 pIndex;
+    u8 hanziData[32];
+    uint32_t unicode;
+    uint32_t flashAddr;
+
+    if (Size == OLED_8X16)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+#ifdef OLED_UNICODE_8X16FONT_ADDR
+        // 没找到就从字库中寻找,字库地址从(宏)开始 16*16字模U+0000 ~ U+FFFF
+        if (strcmp(OLED_Hanzi16x16[pIndex].Index, "") == 0)
+        {
+            // 没在内置字库中找到该汉字，尝试从Flash外置字库中读取
+            // 将UTF-8编码转换为Unicode编码
+            unicode = utf8_to_unicode16(Hanzi);
+
+            // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(32字节)
+            flashAddr = OLED_UNICODE_8X16FONT_ADDR + unicode * 32;
+
+            W25Q128_ReadData(flashAddr, hanziData, 32);
+            OLED_ShowImage(X, Y, 16, 16, hanziData, Color);
+        }
+        else
+        {
+            /*将汉字字模库OLED_Hanzi16x16的指定数据以16*16的图像格式显示*/
+            OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
+        }
+#else
+        OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
+#endif
+    }
+    else if (Size == OLED_6X12)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+#ifdef OLED_UNICODE_6X12FONT_ADDR
+        // 没找到就从字库中寻找,字库地址从(宏)开始 12*12字模U+0000 ~ U+FFFF，使用W25Q128_ReadData(uint32_t Address, uint8_t *DataArray, uint32_t Count);
+        if (strcmp(OLED_Hanzi12x12[pIndex].Index, "") == 0)
+        {
+            // 没在内置字库中找到该汉字，尝试从Flash外置字库中读取
+            // 将UTF-8编码转换为Unicode编码
+            unicode = utf8_to_unicode16(Hanzi);
+
+            // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(24字节)
+            flashAddr = OLED_UNICODE_6X12FONT_ADDR + unicode * 24;
+
+            W25Q128_ReadData(flashAddr, hanziData, 24);
+            OLED_ShowImage(X, Y, 12, 12, hanziData, Color);
+        }
+        else
+        {
+            /*将汉字字模库OLED_Hanzi12x12的指定数据以12*12的图像格式显示*/
+            OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
+        }
+#else
+        OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
+#endif
+    }
+}
+
+#else
+
 /**
  * @brief 显示汉字单字
  * @param X 汉字显示的起始X坐标
@@ -657,6 +871,8 @@ void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单�
     }
 }
 
+#endif
+
 /**
  * @brief 显示字符串
  * @param X 字符串显示的起始X坐标
@@ -667,7 +883,7 @@ void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单�
  */
 void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文打印;
 {
-    u8 i = 0, Len = 0, height = 0, width = 0;
+    u16 i = 0, Len = 0, height = 0, width = 0;
     height = Size;
     if (Size == OLED_6X8)
         width = 6;
@@ -682,12 +898,12 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
             Len = 0;
             i++;
         } // 兼容换行符
-        if ((X + (Len + 1) * width) > Paint.Height)
+        if ((X + (Len + ((String[i] > '~') ? 2 : 1)) * width) > Paint.Height)
         {
             Y += height;
             Len = 0;
         } // 超出屏幕自动换行
-        if ((int8_t)Y > Paint.Width)
+        if ((Y + height) > Paint.Width)
         {
             return;
         }
@@ -725,7 +941,7 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
  */
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...)
 {
-    u8 String[50];                              // 定义字符数组
+    static u8 String[OLED_PRINTF_BUF_SIZE];     // 定义字符数组
     va_list arg;                                // 定义可变参数列表数据类型的变量arg
     va_start(arg, format);                      // 从format开始，接收参数列表到arg变量
     vsprintf((char *)String, format, arg);      // 使用vsprintf打印格式化字符串和参数列表到字符数组中

@@ -20,7 +20,10 @@
   },
   "targets": {
     "Debug": {
-      "excludeList": [],
+      "excludeList": [
+        "src/OLED/font_bin_tool",
+        "src/OLED/rle_compress_tool"
+      ],
       "toolchain": "AC5",
       "compileConfig": {
         "cpuType": "Cortex-M3",
@@ -46,20 +49,20 @@
               "id": 1,
               "mem": {
                 "startAddr": "0x08000000",
-                "size": "0x2000"
+                "size": "0x4800"
               },
-              "isChecked": true,
-              "isStartup": true
+              "isChecked": false,
+              "isStartup": false
             },
             {
               "tag": "IROM",
               "id": 2,
               "mem": {
-                "startAddr": "0x08002000",
-                "size": "0xE000"
+                "startAddr": "0x08004800",
+                "size": "0xB800"
               },
-              "isChecked": false,
-              "isStartup": false
+              "isChecked": true,
+              "isStartup": true
             }
           ]
         },

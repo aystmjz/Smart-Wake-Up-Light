@@ -50,4 +50,5 @@ void UI_Display_MainScreen()
         OLED_Printf(LINE_END + 6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六");
     if (Set.WeekEnable[6])
         OLED_Printf(LINE_END + 6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日");
+    OLED_Display(Image_BW, Part);
 }
