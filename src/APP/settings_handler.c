@@ -158,7 +158,7 @@ void KeyNumber_Set_Alarm()
 			OLED_DrawChart(80, 0, OLED_W - 80, 88, Data, 200, BLACK);
 			alarm_temp = Alarm;
 			PWM_AdjustAlarm(&alarm_temp, &Set.PwmMod, -1);
-			OLED_Printf(84, 88, OLED_8X16, BLACK, "%d:%02d                  %d:%02d", alarm_temp.Hour, alarm_temp.Min, Alarm.Hour, Alarm.Min);
+			OLED_Printf(84, 88, OLED_8X16, BLACK, "%d:%02d                 %d:%02d", alarm_temp.Hour, alarm_temp.Min, Alarm.Hour, Alarm.Min);
 			OLED_Printf(148, 0, OLED_8X16, BLACK, "光照曲线");
 
 			if (Alarm_Choose_Flag < 0)

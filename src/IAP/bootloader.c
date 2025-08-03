@@ -1,5 +1,7 @@
 #include "bootloader.h"
 
+uint8_t DividerLine[40] = "=======================================";
+
 /**
  * @brief  检查APP是否有效
  * @param  None
@@ -375,9 +377,9 @@ void bootloader_print_APPinfo()
     uint8_t first = 1;
     W25Q128_ReadData(OTA_FLAG_ADDRESS, (uint8_t *)&ota_info, sizeof(OTA_INFO));
 
-    uart1_printf("\r\n=======================================\r\n");
+    uart1_printf("\r\n%s\r\n", DividerLine);
     uart1_printf("             APP Information\r\n");
-    uart1_printf("=======================================\r\n");
+    uart1_printf("%s\r\n", DividerLine);
 
     // 显示各个APP的信息
     for (uint8_t i = 0; i < APP_NUM; i++)
@@ -397,7 +399,7 @@ void bootloader_print_APPinfo()
         }
     }
 
-    uart1_printf("=======================================\r\n");
+    uart1_printf("%s\r\n", DividerLine);
 }
 
 /**
@@ -407,9 +409,9 @@ void bootloader_print_APPinfo()
  */
 void BootLoaderInfo(void)
 {
-    uart1_printf("\r\n=======================================\r\n");
+    uart1_printf("\r\n%s\r\n",DividerLine);
     uart1_printf("       BootLoader Command Menu\r\n");
-    uart1_printf("=======================================\r\n");
+    uart1_printf("%s\r\n",DividerLine);
     uart1_printf("[1] Erase APP area\r\n");
     uart1_printf("[2] Serial IAP download APP program\r\n");
     uart1_printf("[3] Set OTA version number\r\n");
@@ -419,7 +421,7 @@ void BootLoaderInfo(void)
     uart1_printf("[7] Reboot system\r\n");
     uart1_printf("[8] Jump to APP\r\n");
     uart1_printf("[9] Check APP info\r\n");
-    uart1_printf("=======================================\r\n");
+    uart1_printf("%s\r\n",DividerLine);
     uart1_printf("Please enter your choice: ");
 }
 
@@ -714,8 +716,8 @@ int main(void)
     W25Q128_Init();
     uart1_init(DEBUG_BAUD);
 
-    LOG_INFO("[BOOTLOADER] Version: 1.2.0\r\n");
-    // LOG_INFO("[BOOTLOADER] Build Date: %s %s\r\n", __DATE__, __TIME__);
+    LOG_INFO("[BOOTLOADER] Version: 1.2.2\r\n");
+    LOG_INFO("[BOOTLOADER] Build Date: %s %s\r\n", __DATE__, __TIME__);
 
     if (BootLoader_Enter(20))
     {

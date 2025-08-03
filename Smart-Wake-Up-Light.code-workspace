@@ -7,7 +7,7 @@
     "settings": {
         "files.autoGuessEncoding": true,
         "C_Cpp.default.configurationProvider": "cl.eide",
-        "C_Cpp.errorSquiggles": "Disabled",
+        "C_Cpp.errorSquiggles": "disabled",
         "files.associations": {
             ".eideignore": "ignore",
             "*.a51": "a51",

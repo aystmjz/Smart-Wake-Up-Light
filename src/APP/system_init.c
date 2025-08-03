@@ -57,11 +57,11 @@ void System_Init()
 	{
 		W25Q128_ReadSetting(&Set);
 		PWM_AdjustAlarm(&Alarm, &Set.PwmMod, 1);
-		LOG_INFO("[SYSTEM] Flash Memory Detected (MID=%d, DID=%d) \r\n", MID, DID);
+		LOG_INFO("[INIT] Flash Memory Detected (MID=%d, DID=%d) \r\n", MID, DID);
 	}
 	else
 	{
-		LOG_WARN("[SYSTEM] No Flash Memory Detected\r\n");
+		LOG_WARN("[INIT] No Flash Memory Detected\r\n");
 	}
 
 	if (Set.DeviceName[0] != 0xff)
@@ -74,14 +74,14 @@ void System_Init()
 	}
 
 	Battery_UpdateLevel(AD_GetValue());
-	LOG_INFO("[SYSTEM] Battery Level Checked: %d%%\r\n", Battery_GetLevel());
+	LOG_INFO("[INIT] Battery Level Checked: %d%%\r\n", Battery_GetLevel());
 
 	if (!Battery_GetState())
 	{
 		PWR_Init();
 		LowPowerON();
 		EXTI5_Init();
-		LOG_INFO("[SYSTEM] System Starting in Low Power Mode\r\n");
+		LOG_INFO("[INIT] System Starting in Low Power Mode\r\n");
 		LowPower_Now = 1;
 	}
 	else
@@ -89,7 +89,7 @@ void System_Init()
 		LED_Init();
 		PWM_Init();
 		LowPowerOFF();
-		LOG_INFO("[SYSTEM] System Starting in Normal Mode\r\n");
+		LOG_INFO("[INIT] System Starting in Normal Mode\r\n");
 		LowPower_Now = 0;
 		if (Set.VoiceEnable)
 		{
@@ -99,5 +99,5 @@ void System_Init()
 
 	Paint_NewImage(Image_BW, OLED_H, OLED_W, ROTATE_180, WHITE);
 	EPD_WhiteScreen_White();
-	LOG_INFO("[MAIN] System Initialized OK\r\n");
+	LOG_INFO("[OK] System Initialized OK\r\n");
 }

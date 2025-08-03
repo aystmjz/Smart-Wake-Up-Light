@@ -1,5 +1,6 @@
 #ifndef __SYS_H
 #define __SYS_H
+
 #include "stm32f10x.h"
 
 #define BOOT_FLAG_ADDR  (0x20003FF0)

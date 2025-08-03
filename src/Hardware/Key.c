@@ -89,22 +89,24 @@ void Key_Entry(void)
 		ClickCount++;
 		if (ClickCount >= 2)
 			Key_KeyNumber = KEY_DOUBLE;
-		HoldTimer = 0;
+		HoldTimer = 1;
 		Buzzer_Flag = 1;
 	}
 	else if (LastState == 1 && NowState == 1) // 持续按住
 	{
-		HoldTimer++;
+		if (HoldTimer)
+			HoldTimer++;
+		if (HoldTimer >= 10)
+		{
+			Key_KeyNumber = KEY_LONG; // 长按事件
+			HoldTimer = 0;
+		}
 	}
 	else if (LastState == 1 && NowState == 0) // 松开按键
 	{
-		if (HoldTimer < 10)
+		if (HoldTimer && HoldTimer < 10)
 		{
 			Key_KeyNumber = KEY_CLICK; // 单击事件
-		}
-		else
-		{
-			Key_KeyNumber = KEY_LONG; // 长按事件
 		}
 	}
 
