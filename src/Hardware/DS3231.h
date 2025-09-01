@@ -40,7 +40,7 @@ void DS3231_WriteTime(struct tm *Time);
 void DS3231_InitAlarm(AlarmTypeDef *Alarm);
 void DS3231_WriteAlarm(AlarmTypeDef *Alarm);
 void DS3231_ResetAlarm(void);
-void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm);
+uint8_t DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm);
 void TimeJudge(struct tm *Time);
 void Alarm_Judge(AlarmTypeDef *Alarm);
 char *Get_Week_Str(uint8_t time_Week);

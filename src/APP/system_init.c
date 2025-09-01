@@ -1,4 +1,4 @@
-#include "system_init.h"
+﻿#include "system_init.h"
 
 // ASCII艺术字Logo
 const char startup_logo[] = "\r\n"
@@ -41,17 +41,45 @@ void System_Init()
 	Debug_printf("  MCU: STM32F103C8T6\r\n");
 	Debug_printf("=============================================\r\n\r\n");
 
+	if (OLED_Init())
+	{
+		LOG_ERROR("[INIT] OLED Display Initialization Timeout\r\n");
+	}
+	else
+	{
+		LOG_INFO("[INIT] OLED Display Initialized Successfully\r\n");
+	}
+
 	Key_Init();
 	AD_Init();
 	Encoder_Init();
-	OLED_Init();
 	SHT30_Init();
 	EXTI0_Init();
 	EXTI9_Init();
 	W25Q128_Init();
 	ASRPRO_Init();
 	Buzzer_Init();
-	DS3231_Init(&Time, &Alarm);
+
+	if (SHT30_GetData(&SHT))
+	{
+		LOG_ERROR("[INIT] SHT30 sensor not responding or data invalid\r\n");
+	}
+	else
+	{
+		LOG_INFO("[INIT] Temperature: %.2f°C, Humidity: %.2f%%\r\n", SHT.Temp, SHT.Hum);
+	}
+
+	if (DS3231_Init(&Time, &Alarm))
+	{
+		LOG_ERROR("[INIT] DS3231 time may be invalid or hardware not connected. Consider setting time.\r\n");
+	}
+	else
+	{
+		LOG_INFO("[INIT] Time: %04d-%02d-%02d %02d:%02d:%02d\r\n",
+				 Time.tm_year + 1900, Time.tm_mon + 1, Time.tm_mday,
+				 Time.tm_hour, Time.tm_min, Time.tm_sec);
+	}
+
 	W25Q128_ReadID(&MID, &DID);
 	if (MID)
 	{
@@ -61,7 +89,7 @@ void System_Init()
 	}
 	else
 	{
-		LOG_WARN("[INIT] No Flash Memory Detected\r\n");
+		LOG_ERROR("[INIT] No Flash Memory Detected\r\n");
 	}
 
 	if (Set.DeviceName[0] != 0xff)

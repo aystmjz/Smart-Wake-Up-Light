@@ -3,7 +3,7 @@
 u8 Image_BW[OLED_W * OLED_H / 8];
 
 // 初始化GPIO
-void OLED_Init(void)
+uint8_t OLED_Init(void)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
     GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
@@ -31,7 +31,7 @@ void OLED_Init(void)
     Delay_ms(20);   // At least 10ms delay
     OLED_RES_Set();
     Delay_ms(20); // At least 10ms delay
-    Epaper_READBUSY();
+    return Epaper_READBUSY();
 }
 
 // 模拟SPI时序
@@ -72,13 +72,27 @@ void OLED_WR_DATA8(u8 dat)
 
 PAINT Paint;
 
-void Epaper_READBUSY()
+/**
+ * @brief 等待E-paper显示屏忙信号结束
+ * @return 0: 成功等待到空闲状态  1: 等待超时
+ */
+uint8_t Epaper_READBUSY(void)
 {
+    uint32_t timeout = 0;
+    const uint32_t timeout_max = 0x8fffff;
+
     while (1)
     {
         if (OLED_BUSY() == 0)
         {
-            break;
+            return 0; // 成功等待到空闲状态
+        }
+        
+        timeout++;
+        
+        if (timeout >= timeout_max)
+        {
+            return 1; // 等待超时
         }
     }
 }

@@ -34,7 +34,7 @@ volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	  // 接收缓冲
 /// @param bound 波特率
 void UART1_Init(uint32_t bound)
 {
-#if DEBUG_MODE == DEBUG_MODE_BT24T
+#if DEBUG_MODE == DEBUG_MODE_BT24
 #else
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;

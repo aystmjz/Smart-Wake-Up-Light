@@ -87,8 +87,6 @@ void Key_Entry(void)
 	if (LastState == 0 && NowState == 1) // 检测到按键按下
 	{
 		ClickCount++;
-		if (ClickCount >= 2)
-			Key_KeyNumber = KEY_DOUBLE;
 		HoldTimer = 1;
 		Buzzer_Flag = 1;
 	}
@@ -104,7 +102,9 @@ void Key_Entry(void)
 	}
 	else if (LastState == 1 && NowState == 0) // 松开按键
 	{
-		if (HoldTimer && HoldTimer < 10)
+		if (ClickCount >= 2)
+			Key_KeyNumber = KEY_DOUBLE;
+		else if (HoldTimer && HoldTimer < 10)
 		{
 			Key_KeyNumber = KEY_CLICK; // 单击事件
 		}

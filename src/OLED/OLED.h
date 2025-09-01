@@ -78,7 +78,7 @@ void OLED_WR_Bus(u8 dat);   // 模拟SPI时序
 void OLED_WR_REG(u8 reg);   // 写入一个命令
 void OLED_WR_DATA8(u8 dat); // 写入一个字节
 
-void Epaper_READBUSY(void);
+uint8_t Epaper_READBUSY(void);
 void EPD_WhiteScreen_White(void); // 清屏白色
 void EPD_Dis_PartAll(u8 *Image);  // 用局刷的方式刷新全屏
 void EPD_DeepSleep(void);         // 深度睡眠
@@ -103,6 +103,6 @@ void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleD
 
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...);
 void OLED_Display(u8 *Image, u8 Mode); // 更新到屏幕(局刷/全刷)
-void OLED_Init(void);
+uint8_t OLED_Init(void);
 
 #endif

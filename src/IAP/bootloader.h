@@ -7,6 +7,7 @@
 #include "usart.h"
 #include "log.h"
 #include "Delay.h"
+#include "BT24.h"
 
 #define SOH 0x01 // 数据包开始标志
 #define EOT 0x04 // 传输结束

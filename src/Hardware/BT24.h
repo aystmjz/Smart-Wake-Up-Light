@@ -25,6 +25,7 @@
 
 void BT24_Init(char *DeviceName);
 void BT24_Reset(void);
+void BT24_Disconnect(void);
 uint8_t BT24_GetStatus(void);
 void BT24_PubString(char *str);
 

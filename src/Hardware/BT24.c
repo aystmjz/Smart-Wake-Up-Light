@@ -6,35 +6,47 @@ uint8_t BT24_AT_Init(char *DeviceName);
 void BT24_Init(char *DeviceName)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-#if DEBUG_MODE == 2 || DEBUG_MODE == 3
+#if DEBUG_MODE == DEBUG_MODE_STM32 || DEBUG_MODE == DEBUG_MODE_ASRPRO
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
 #else
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
 #endif
+    GPIO_SetBits(GPIOA, GPIO_Pin_6);
 
     BT24_AT_Init(DeviceName);
 }
 
+// 发送高电平脉冲进行复位
 void BT24_Reset(void)
 {
-#if DEBUG_MODE == 2 || DEBUG_MODE == 3
+#if DEBUG_MODE == DEBUG_MODE_STM32 || DEBUG_MODE == DEBUG_MODE_ASRPRO
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
 #else
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
-    Delay_ms(20);
+    Delay_ms(300);
     GPIO_ResetBits(GPIOB, GPIO_Pin_10);
-    Delay_ms(200);
 #endif
+}
+
+// 发送低电平脉冲至KEY引脚(断开连接)
+void BT24_Disconnect(void)
+{
+    GPIO_ResetBits(GPIOA, GPIO_Pin_6);
+    Delay_ms(300);
+    GPIO_SetBits(GPIOA, GPIO_Pin_6);
 }
 
 uint8_t BT24_GetStatus(void)

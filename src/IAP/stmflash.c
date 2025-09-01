@@ -131,17 +131,3 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 
     FLASH_Lock(); /* 上锁 */
 }
-
-/******************************************************************************************/
-/* 测试使用 */
-
-/**
- * @brief       测试写入(写1个字)
- * @param       waddr : 起始地址
- * @param       wdata : 要写入的数据
- * @retval      读取到的数据
- */
-void test_write(uint32_t waddr, uint16_t wdata)
-{
-    stmflash_write(waddr, &wdata, 1); /* 写入一个半字 */
-}

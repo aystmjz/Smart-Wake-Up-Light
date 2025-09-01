@@ -1,6 +1,6 @@
 #include "bootloader.h"
 
-uint8_t DividerLine[40] = "=======================================";
+const char *DividerLine = "=======================================";
 
 /**
  * @brief  检查APP是否有效
@@ -156,6 +156,30 @@ void bootloader_jump_to_app(void)
     {
         LOG_INFO("[BOOTLOADER] Jump to APP...\r\n");
     }
+
+    // 复位使用的外设
+    // 关闭USART1
+    USART_Cmd(USART1, DISABLE);
+    USART_DeInit(USART1);
+
+    /*
+    // 关闭DMA
+    DMA_Cmd(DMA1_Channel5, DISABLE);
+    DMA_DeInit(DMA1_Channel5);
+
+    // 关闭SPI
+    SPI_Cmd(SPI1, DISABLE);
+    SPI_I2S_DeInit(SPI1);
+
+    // 关闭GPIO时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, DISABLE);
+    // 关闭SPI2时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, DISABLE);
+    // 关闭DMA时钟
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, DISABLE);
+    // 关闭USART时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, DISABLE);
+    */
 
     // 获取APP的栈指针和复位处理函数
     uint32_t app_stack_pointer = *((volatile uint32_t *)APP_STACK_ADDR);
@@ -409,9 +433,9 @@ void bootloader_print_APPinfo()
  */
 void BootLoaderInfo(void)
 {
-    uart1_printf("\r\n%s\r\n",DividerLine);
+    uart1_printf("\r\n%s\r\n", DividerLine);
     uart1_printf("       BootLoader Command Menu\r\n");
-    uart1_printf("%s\r\n",DividerLine);
+    uart1_printf("%s\r\n", DividerLine);
     uart1_printf("[1] Erase APP area\r\n");
     uart1_printf("[2] Serial IAP download APP program\r\n");
     uart1_printf("[3] Set OTA version number\r\n");
@@ -421,7 +445,7 @@ void BootLoaderInfo(void)
     uart1_printf("[7] Reboot system\r\n");
     uart1_printf("[8] Jump to APP\r\n");
     uart1_printf("[9] Check APP info\r\n");
-    uart1_printf("%s\r\n",DividerLine);
+    uart1_printf("%s\r\n", DividerLine);
     uart1_printf("Please enter your choice: ");
 }
 

@@ -19,7 +19,7 @@
 #include "globals.h"
 #include "pwm_application.h"
 
-#define FIRMWARE_VERSION "2.4.1"
+#define FIRMWARE_VERSION "2.4.2"
 #define FIRMWARE_BUILD_DATE __DATE__
 #define FIRMWARE_BUILD_TIME __TIME__
 

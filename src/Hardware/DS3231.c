@@ -56,9 +56,9 @@ void DS3231_ReadTime(struct tm *Time)
 uint8_t DS3231_ReadStatus(AlarmTypeDef *Alarm)
 {
 	uint8_t temp;
-	temp=DS3231_ReadByte(DS3231_STATUS);
+	temp = DS3231_ReadByte(DS3231_STATUS);
 	if (Alarm->Num == Alarm_1)
-		Alarm->Status = temp& 0x01;
+		Alarm->Status = temp & 0x01;
 	else if (Alarm->Num == Alarm_2)
 		Alarm->Status = (temp & 0x02) >> 1;
 	return Alarm->Status;
@@ -163,13 +163,29 @@ void DS3231_ReadAlarm(AlarmTypeDef *Alarm)
 		Alarm->Day = ((Temp[2] & 0x30) >> 4) * 10 + (Temp[2] & 0x0F);
 }
 
-void DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm)
+uint8_t DS3231_Init(struct tm *Time, AlarmTypeDef *Alarm)
 {
-	
+
 	DS3231_I2C_Init();
 	DS3231_ResetAlarm();
 	DS3231_ReadTime(Time);
 	DS3231_ReadAlarm(Alarm);
+
+	if (Time->tm_year < 120 || Time->tm_year > 150)
+	{
+		return 1;
+	}
+
+	if (Time->tm_mon < 0 || Time->tm_mon > 11 ||
+		Time->tm_mday < 1 || Time->tm_mday > 31 ||
+		Time->tm_hour < 0 || Time->tm_hour > 23 ||
+		Time->tm_min < 0 || Time->tm_min > 59 ||
+		Time->tm_sec < 0 || Time->tm_sec > 59)
+	{
+		return 1;
+	}
+
+	return 0;
 }
 
 void TimeJudge(struct tm *Time)
