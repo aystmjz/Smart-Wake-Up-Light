@@ -306,6 +306,11 @@ uint8_t BootLoader_Enter(uint8_t timeout)
         return 1;                                 // 进入命令行
     }
 
+    if (BT24_GetStatus() == BT24_DISCONNECTED) // BT24未连接时持续复位蓝牙模块，避免对串口产生干扰
+    {
+        BT24_Reset_Assert();
+    }
+
     LOG_INFO("[BOOTLOADER] Within %dms, enter a lowercase letter 'w' to enter BootLoader command line\r\n", timeout * 100);
 
     while (timeout--)
@@ -438,7 +443,7 @@ void BootLoaderInfo(void)
     uart1_printf("%s\r\n", DividerLine);
     uart1_printf("[1] Erase APP area\r\n");
     uart1_printf("[2] Serial IAP download APP program\r\n");
-    uart1_printf("[3] Set OTA version number\r\n");
+    // uart1_printf("[3] Set OTA version number\r\n");
     uart1_printf("[4] Download file to external Flash\r\n");
     uart1_printf("[5] Download APP to external Flash\r\n");
     uart1_printf("[6] Load APP in external Flash\r\n");
@@ -585,15 +590,7 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
 
             LOG_INFO("[BOOTLOADER] Received EOT. Transmission complete\r\n");
             LOG_INFO("[BOOTLOADER] Total bytes: %d (%.2f kB)\r\n", total_received, total_received / 1024.0f);
-
-            if (block_min == block_max)
-            {
-                LOG_INFO("[BOOTLOADER] Flash blocks used: %d\r\n", block_min);
-            }
-            else
-            {
-                LOG_INFO("[BOOTLOADER] Flash blocks used: %d ~ %d\r\n", block_min, block_max);
-            }
+            LOG_INFO("[BOOTLOADER] Flash blocks used: %d ~ %d\r\n", block_min, block_max);
             LOG_INFO("[BOOTLOADER] Flash address range: 0x%06X ~ 0x%06X\r\n",
                      flash_addr, flash_addr + total_received);
             break;
@@ -739,8 +736,9 @@ int main(void)
     BOOTLOADER_STATE state = STATE_IDLE;
     W25Q128_Init();
     uart1_init(DEBUG_BAUD);
+    BT24_GPIO_Init();
 
-    LOG_INFO("[BOOTLOADER] Version: 1.2.2\r\n");
+    LOG_INFO("[BOOTLOADER] Version: 1.2.3\r\n");
     LOG_INFO("[BOOTLOADER] Build Date: %s %s\r\n", __DATE__, __TIME__);
 
     if (BootLoader_Enter(20))
@@ -793,7 +791,7 @@ int main(void)
                     break;
                 case '3':
                     // 设置OTA版本号
-                    uart1_printf("Set OTA version number...\r\n");
+                    //uart1_printf("Set OTA version number...\r\n");
                     break;
                 case '4':
                 {
@@ -902,6 +900,7 @@ int main(void)
                 case '7':
                     // 重启系统
                     uart1_printf("Rebooting system...\r\n");
+                    Delay_ms(100);
                     NVIC_SystemReset();
                     break;
                 case '8':

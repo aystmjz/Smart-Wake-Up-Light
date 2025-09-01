@@ -12,6 +12,9 @@
 #define baud_9600 3
 #define baud_115200 7
 
+#define BT24_CONNECTED 1
+#define BT24_DISCONNECTED 0
+
 #define BT_DEVICE_NAME "Smart WakeUpLight"
 #define BT_DEVICE_BAUD baud_115200
 
@@ -23,8 +26,11 @@
 #define ATcmd_Clear_Buffer BT24_Clear_Buff
 #define ATcmd_UartInit UART1_Init
 
+void BT24_GPIO_Init(void);
 void BT24_Init(char *DeviceName);
 void BT24_Reset(void);
+void BT24_Reset_Assert(void);
+void BT24_Reset_Deassert(void);
 void BT24_Disconnect(void);
 uint8_t BT24_GetStatus(void);
 void BT24_PubString(char *str);

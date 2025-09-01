@@ -3,21 +3,28 @@
 static char AT_cmd[ATCMD_BUFF_LEN];
 
 uint8_t BT24_AT_Init(char *DeviceName);
-void BT24_Init(char *DeviceName)
+
+void BT24_GPIO_Init(void)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-
     GPIO_InitTypeDef GPIO_InitStructure;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
+#ifndef BUILD_BOOT_LOADER
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+#endif
+
+#ifdef BUILD_BOOT_LOADER
+    GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+#else
 
 #if DEBUG_MODE == DEBUG_MODE_STM32 || DEBUG_MODE == DEBUG_MODE_ASRPRO
     GPIO_SetBits(GPIOB, GPIO_Pin_10);
@@ -26,6 +33,12 @@ void BT24_Init(char *DeviceName)
 #endif
     GPIO_SetBits(GPIOA, GPIO_Pin_6);
 
+#endif
+}
+
+void BT24_Init(char *DeviceName)
+{
+    BT24_GPIO_Init();
     BT24_AT_Init(DeviceName);
 }
 
@@ -41,6 +54,18 @@ void BT24_Reset(void)
 #endif
 }
 
+// 持续复位蓝牙模块（保持复位状态）
+void BT24_Reset_Assert(void)
+{
+    GPIO_SetBits(GPIOB, GPIO_Pin_10);
+}
+
+// 解除持续复位（释放复位状态）
+void BT24_Reset_Deassert(void)
+{
+    GPIO_ResetBits(GPIOB, GPIO_Pin_10);
+}
+
 // 发送低电平脉冲至KEY引脚(断开连接)
 void BT24_Disconnect(void)
 {
@@ -49,8 +74,13 @@ void BT24_Disconnect(void)
     GPIO_SetBits(GPIOA, GPIO_Pin_6);
 }
 
+/**
+ * @brief 获取蓝牙模块连接状态
+ * @return 蓝牙连接状态，0表示未连接，1表示已连接
+ */
 uint8_t BT24_GetStatus(void)
 {
+    // 读取GPIOB的Pin9引脚电平状态作为蓝牙连接状态
     return GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9);
 }
 
