@@ -11,7 +11,6 @@
 
 #define EXTRA_CMD_BUFF 24
 
-uint8_t BT24_GetStatus(void);
 uint8_t BT24_FindValidJson(char *buffer, uint16_t length, char *json_str);
 void BT24_PubData(PubDataTypeDef *pub_data);
 int8_t BT24_ParseCmd(const char *json_str);

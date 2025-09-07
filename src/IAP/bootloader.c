@@ -15,22 +15,26 @@ uint8_t bootloader_check_app_valid(void)
     // 检查栈指针是否在有效SRAM范围内 0x20000000 - 0x20004FFF (20KB)
     if ((app_stack_pointer & 0xFFFF0000) != 0x20000000)
     {
-        LOG_ERROR("[BOOTLOADER] Invalid stack pointer. Expected: 0x20000000-0x20004FFF, Got: 0x%08X\r\n", app_stack_pointer);
+        LOG_ERROR(
+            "[BOOTLOADER] Invalid stack pointer. Expected: 0x20000000-0x20004FFF, Got: 0x%08X\r\n",
+            app_stack_pointer);
         return 0; // 栈指针无效
     }
 
     // 检查复位处理函数地址是否在APP范围内
     if ((app_reset_handler < APP_ADDR) || (app_reset_handler > FLASH_END_ADDR))
     {
-        LOG_ERROR("[BOOTLOADER] Invalid reset handler address. Expected: 0x%08X-0x%08X, Got: 0x%08X\r\n",
-                  APP_ADDR, FLASH_END_ADDR, app_reset_handler);
+        LOG_ERROR(
+            "[BOOTLOADER] Invalid reset handler address. Expected: 0x%08X-0x%08X, Got: 0x%08X\r\n",
+            APP_ADDR, FLASH_END_ADDR, app_reset_handler);
         return 0; // 复位处理函数地址无效
     }
 
     // 检查复位处理函数地址是否是有效的Flash地址(通常在0x08000000之后)
     if ((app_reset_handler & 0xFF000000) != 0x08000000)
     {
-        LOG_ERROR("[BOOTLOADER] Invalid Flash address. Expected: 0x08xxxxxx, Got: 0x%08X\r\n", app_reset_handler);
+        LOG_ERROR("[BOOTLOADER] Invalid Flash address. Expected: 0x08xxxxxx, Got: 0x%08X\r\n",
+                  app_reset_handler);
         return 0; // 地址不在Flash范围内
     }
 
@@ -88,7 +92,7 @@ void bootloader_set_ota_flag(uint8_t ota_index)
     W25Q128_ReadData(OTA_FLAG_ADDRESS, (uint8_t *)&ota_info, sizeof(OTA_INFO));
 
     // 只清除OTA标志位，保持其他信息不变
-    ota_info.OTA_FLAG = OTA_VALID;
+    ota_info.OTA_FLAG  = OTA_VALID;
     ota_info.OTA_INDEX = ota_index;
 
     // 擦除OTA标志所在的扇区
@@ -123,7 +127,7 @@ void bootloader_set_app(uint8_t app_num, uint8_t block_num, uint16_t app_size)
 
     // 设置指定APP的信息
     ota_info.APP[app_num].Block_NUM = block_num;
-    ota_info.APP[app_num].APP_Size = app_size;
+    ota_info.APP[app_num].APP_Size  = app_size;
     if (app_size > 0)
         ota_info.APP[app_num].APP_Flag = APP_VALID;
     else
@@ -135,8 +139,7 @@ void bootloader_set_app(uint8_t app_num, uint8_t block_num, uint16_t app_size)
     // 写入更新后的OTA信息
     W25Q128_PageProgram(OTA_FLAG_ADDRESS, (uint8_t *)&ota_info, sizeof(OTA_INFO));
 
-    LOG_INFO("[BOOTLOADER] APP %d info set: block=%d, size=%d\r\n",
-             app_num, block_num, app_size);
+    LOG_INFO("[BOOTLOADER] APP %d info set: block=%d, size=%d\r\n", app_num, block_num, app_size);
 }
 
 /**
@@ -202,8 +205,8 @@ void bootloader_jump_to_app(void)
 uint8_t bootloader_load_flash(uint32_t w25q_addr, uint16_t app_size)
 {
     static uint16_t write_buffer[STM32_SECTOR_SIZE * 5];
-    uint32_t read_addr = w25q_addr;
-    uint32_t write_addr = APP_ADDR;
+    uint32_t read_addr      = w25q_addr;
+    uint32_t write_addr     = APP_ADDR;
     uint16_t remaining_size = app_size;
 
     LOG_INFO("[BOOTLOADER] Loading APP from W25Q128 to Flash...\r\n");
@@ -226,8 +229,8 @@ uint8_t bootloader_load_flash(uint32_t w25q_addr, uint16_t app_size)
         uint16_t write_length = (read_size + 1) / 2; // 向上取整
         stmflash_write(write_addr, write_buffer, write_length);
 
-        LOG_INFO("[BOOTLOADER] Flashing %d bytes (%.2f KB) to 0x%08X...\r\n",
-                 read_size, read_size / 1024.0f, write_addr);
+        LOG_INFO("[BOOTLOADER] Flashing %d bytes (%.2f KB) to 0x%08X...\r\n", read_size,
+                 read_size / 1024.0f, write_addr);
 
         read_addr += read_size;
         write_addr += read_size;
@@ -267,8 +270,8 @@ uint8_t bootloader_load_app(uint8_t app_index)
 
     if (app_size > 0)
     {
-        LOG_INFO("[BOOTLOADER] APP %d Block: %d, Size: %d bytes (%.2f KB)\r\n",
-                 app_index, block_num, app_size, app_size / 1024.0f);
+        LOG_INFO("[BOOTLOADER] APP %d Block: %d, Size: %d bytes (%.2f KB)\r\n", app_index,
+                 block_num, app_size, app_size / 1024.0f);
 
         // 计算W25Q128中该APP块的起始地址
         // 每个块大小为64KB (0x10000)
@@ -287,8 +290,8 @@ uint8_t bootloader_load_app(uint8_t app_index)
     }
     else
     {
-        LOG_INFO("[BOOTLOADER] Invalid APP %d (Size: %d, Block: %d)\r\n",
-                 app_index, app_size, block_num);
+        LOG_INFO("[BOOTLOADER] Invalid APP %d (Size: %d, Block: %d)\r\n", app_index, app_size,
+                 block_num);
         return 0;
     }
 }
@@ -311,7 +314,9 @@ uint8_t BootLoader_Enter(uint8_t timeout)
         BT24_Reset_Assert();
     }
 
-    LOG_INFO("[BOOTLOADER] Within %dms, enter a lowercase letter 'w' to enter BootLoader command line\r\n", timeout * 100);
+    LOG_INFO("[BOOTLOADER] Within %dms, enter a lowercase letter 'w' to enter BootLoader command "
+             "line\r\n",
+             timeout * 100);
 
     while (timeout--)
     {
@@ -341,11 +346,11 @@ uint8_t bootloader_erase_app_area(void)
     FLASH_Unlock();
 
     // 擦除APP区域的所有页
-    uint16_t total_pages = APP_SIZE / STM32_SECTOR_SIZE;
+    uint16_t total_pages  = APP_SIZE / STM32_SECTOR_SIZE;
     uint16_t erased_pages = 0;
 
-    LOG_INFO("Erasing APP area: 0x%08X - 0x%08X, Size: %d bytes , Pages: %d\r\n",
-             APP_ADDR, APP_ADDR + APP_SIZE - 1, APP_SIZE, APP_SIZE / 1024.0f, total_pages);
+    LOG_INFO("Erasing APP area: 0x%08X - 0x%08X, Size: %d bytes , Pages: %d\r\n", APP_ADDR,
+             APP_ADDR + APP_SIZE - 1, APP_SIZE, APP_SIZE / 1024.0f, total_pages);
 
     for (uint32_t addr = APP_ADDR; addr < APP_ADDR + APP_SIZE; addr += STM32_SECTOR_SIZE)
     {
@@ -362,11 +367,11 @@ uint8_t bootloader_erase_app_area(void)
             if (total_pages > 0 && (erased_pages * 100 / total_pages) % 10 == 0)
             {
                 static uint16_t last_percentage = 0;
-                uint16_t percentage = erased_pages * 100 / total_pages;
+                uint16_t percentage             = erased_pages * 100 / total_pages;
                 if (percentage != last_percentage)
                 {
-                    LOG_INFO("Flash erase progress: %d%% (%d/%d pages)\r\n",
-                             percentage, erased_pages, total_pages);
+                    LOG_INFO("Flash erase progress: %d%% (%d/%d pages)\r\n", percentage,
+                             erased_pages, total_pages);
                     last_percentage = percentage;
                 }
             }
@@ -477,13 +482,13 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
 {
     uint8_t rx_buf[133]; // SOH + blk + ~blk + 128 + CRC
     uint8_t data_buf[XMODEM_PACKET_SIZE];
-    uint8_t packet_num = 1;
+    uint8_t packet_num      = 1;
     uint32_t total_received = 0;
-    uint32_t write_addr = flash_addr;
+    uint32_t write_addr     = flash_addr;
 
     uint32_t erased_block_base = 0xFFFFFFFF;
-    uint8_t block_min = 0xFF;
-    uint8_t block_max = 0;
+    uint8_t block_min          = 0xFF;
+    uint8_t block_max          = 0;
 
     LOG_INFO("[BOOTLOADER] Starting XMODEM receive at 0x%08X\r\n", flash_addr);
 
@@ -506,7 +511,7 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
     while (1)
     {
         uint16_t received = 0;
-        timeout = 10000000;
+        timeout           = 10000000;
 
         while (received < 133 && --timeout)
         {
@@ -531,18 +536,20 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
             if ((pkt_num + pkt_cmp) != 0xFF || pkt_num != packet_num)
             {
                 uart1_send_byte(NAK);
-                LOG_WARN("[BOOTLOADER] Packet number mismatch. Expected: %d, Received: %d\r\n", packet_num, pkt_num);
+                LOG_WARN("[BOOTLOADER] Packet number mismatch. Expected: %d, Received: %d\r\n",
+                         packet_num, pkt_num);
                 continue;
             }
 
-            uint8_t *payload = &rx_buf[3];
+            uint8_t *payload  = &rx_buf[3];
             uint16_t crc_recv = ((uint16_t)rx_buf[131] << 8) | rx_buf[132];
             uint16_t crc_calc = xmodem_crc16(payload, XMODEM_PACKET_SIZE);
 
             if (crc_recv != crc_calc)
             {
                 uart1_send_byte(NAK);
-                LOG_WARN("[BOOTLOADER] CRC error in packet %d. Recv: 0x%04X, Calc: 0x%04X\r\n", packet_num, crc_recv, crc_calc);
+                LOG_WARN("[BOOTLOADER] CRC error in packet %d. Recv: 0x%04X, Calc: 0x%04X\r\n",
+                         packet_num, crc_recv, crc_calc);
                 continue;
             }
 
@@ -552,7 +559,9 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
             {
                 uart1_send_byte(CAN);
                 uart1_send_byte(CAN); // 向发送端发取消
-                LOG_ERROR("[XMODEM] Write address 0x%08X exceeds W25Q128 capacity (16MB), aborting\r\n", target_addr);
+                LOG_ERROR(
+                    "[XMODEM] Write address 0x%08X exceeds W25Q128 capacity (16MB), aborting\r\n",
+                    target_addr);
                 return 0;
             }
 
@@ -562,11 +571,12 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
             packet_num++;
 
             uint32_t block_base = target_addr & ~(W25Q128_BLOCK_SIZE - 1); // block 起始地址
-            uint8_t block_num = block_base / W25Q128_BLOCK_SIZE;
+            uint8_t block_num   = block_base / W25Q128_BLOCK_SIZE;
 
             if (block_base != erased_block_base)
             {
-                LOG_INFO("[BOOTLOADER] Erasing block at 0x%08X (block %d)...\r\n", block_base, block_num);
+                LOG_INFO("[BOOTLOADER] Erasing block at 0x%08X (block %d)...\r\n", block_base,
+                         block_num);
                 W25Q128_BlockErase(block_base);
                 LOG_INFO("[BOOTLOADER] Block erase completed\r\n");
 
@@ -589,16 +599,18 @@ uint32_t bootloader_xmodem_receive(uint32_t flash_addr)
             uart1_send_byte(ACK);
 
             LOG_INFO("[BOOTLOADER] Received EOT. Transmission complete\r\n");
-            LOG_INFO("[BOOTLOADER] Total bytes: %d (%.2f kB)\r\n", total_received, total_received / 1024.0f);
+            LOG_INFO("[BOOTLOADER] Total bytes: %d (%.2f kB)\r\n", total_received,
+                     total_received / 1024.0f);
             LOG_INFO("[BOOTLOADER] Flash blocks used: %d ~ %d\r\n", block_min, block_max);
-            LOG_INFO("[BOOTLOADER] Flash address range: 0x%06X ~ 0x%06X\r\n",
-                     flash_addr, flash_addr + total_received);
+            LOG_INFO("[BOOTLOADER] Flash address range: 0x%06X ~ 0x%06X\r\n", flash_addr,
+                     flash_addr + total_received);
             break;
         }
         else
         {
             uart1_send_byte(CAN);
-            LOG_ERROR("[BOOTLOADER] Unexpected packet start byte: 0x%02X. Aborting.\r\n", rx_buf[0]);
+            LOG_ERROR("[BOOTLOADER] Unexpected packet start byte: 0x%02X. Aborting.\r\n",
+                      rx_buf[0]);
             return 0;
         }
     }
@@ -610,9 +622,9 @@ uint32_t bootloader_xmodem_iap(void)
 {
     uint8_t rx_buf[133]; // SOH + blk + ~blk + 128 + CRC
     static uint16_t flash_buffer[XMODEM_IAP_BUF_SIZE / 2];
-    uint8_t packet_num = 1;
+    uint8_t packet_num      = 1;
     uint32_t total_received = 0;
-    uint32_t write_addr = APP_ADDR;
+    uint32_t write_addr     = APP_ADDR;
 
     uint16_t buffer_index = 0;
 
@@ -636,7 +648,7 @@ uint32_t bootloader_xmodem_iap(void)
     while (1)
     {
         uint16_t received = 0;
-        timeout = 1000000;
+        timeout           = 1000000;
 
         while (received < 133 && --timeout)
         {
@@ -661,18 +673,20 @@ uint32_t bootloader_xmodem_iap(void)
             if ((pkt_num + pkt_cmp) != 0xFF || pkt_num != packet_num)
             {
                 uart1_send_byte(NAK);
-                LOG_WARN("[IAP] Packet number mismatch: expected %d, got %d\r\n", packet_num, pkt_num);
+                LOG_WARN("[IAP] Packet number mismatch: expected %d, got %d\r\n", packet_num,
+                         pkt_num);
                 continue;
             }
 
-            uint8_t *payload = &rx_buf[3];
+            uint8_t *payload  = &rx_buf[3];
             uint16_t crc_recv = ((uint16_t)rx_buf[131] << 8) | rx_buf[132];
             uint16_t crc_calc = xmodem_crc16(payload, XMODEM_PACKET_SIZE);
 
             if (crc_recv != crc_calc)
             {
                 uart1_send_byte(NAK);
-                LOG_WARN("[IAP] CRC error in packet %d. Recv: 0x%04X, Calc: 0x%04X\r\n", packet_num, crc_recv, crc_calc);
+                LOG_WARN("[IAP] CRC error in packet %d. Recv: 0x%04X, Calc: 0x%04X\r\n", packet_num,
+                         crc_recv, crc_calc);
                 continue;
             }
 
@@ -707,11 +721,13 @@ uint32_t bootloader_xmodem_iap(void)
             // 写入剩余不足10K的数据
             if (buffer_index > 0)
             {
-                LOG_INFO("[IAP] Flashing final %d bytes (%.2f KB) to 0x%08X...\r\n", buffer_index, buffer_index / 1024.0f, write_addr);
+                LOG_INFO("[IAP] Flashing final %d bytes (%.2f KB) to 0x%08X...\r\n", buffer_index,
+                         buffer_index / 1024.0f, write_addr);
                 stmflash_write(write_addr, flash_buffer, buffer_index / 2);
             }
 
-            LOG_INFO("[IAP] IAP complete. Total received: %d bytes (%.2f kB)\r\n", total_received, total_received / 1024.0f);
+            LOG_INFO("[IAP] IAP complete. Total received: %d bytes (%.2f kB)\r\n", total_received,
+                     total_received / 1024.0f);
             break;
         }
         else
@@ -791,7 +807,7 @@ int main(void)
                     break;
                 case '3':
                     // 设置OTA版本号
-                    //uart1_printf("Set OTA version number...\r\n");
+                    // uart1_printf("Set OTA version number...\r\n");
                     break;
                 case '4':
                 {
@@ -811,7 +827,8 @@ int main(void)
                         uart1_printf("Invalid flash address: 0x%08X\r\n", flash_address);
                         break;
                     }
-                    uart1_printf("Selected flash address: 0x%08X\r\n", flash_address); // 输出确认信息
+                    uart1_printf("Selected flash address: 0x%08X\r\n",
+                                 flash_address); // 输出确认信息
 
                     bootloader_wait();
 
@@ -819,12 +836,14 @@ int main(void)
 
                     if (received_size > 0)
                     {
-                        uart1_printf("File downloaded to address 0x%08X successfully. Size: %d bytes (%.2f KB)\r\n",
+                        uart1_printf("File downloaded to address 0x%08X successfully. Size: %d "
+                                     "bytes (%.2f KB)\r\n",
                                      flash_address, received_size, received_size / 1024.0f);
                     }
                     else
                     {
-                        uart1_printf("Failed to download file to address 0x%08X\r\n", flash_address);
+                        uart1_printf("Failed to download file to address 0x%08X\r\n",
+                                     flash_address);
                     }
                     break;
                 }
@@ -855,7 +874,8 @@ int main(void)
                         uart1_printf("Invalid Block index: %d\r\n", block_index);
                         break;
                     }
-                    uart1_printf("Selected APP %d, Block %d\r\n", app_index, block_index); // 输出确认信息
+                    uart1_printf("Selected APP %d, Block %d\r\n", app_index,
+                                 block_index); // 输出确认信息
                     uart1_printf("Warning: APP size must be less than %d bytes (%.2f KB)!\r\n",
                                  APP_SIZE, APP_SIZE / 1024.0f);
 
@@ -868,12 +888,15 @@ int main(void)
                     if (received_size > 0)
                     {
                         bootloader_set_app(app_index, block_index, received_size);
-                        uart1_printf("APP %d downloaded to Block %d successfully. Size: %d bytes (%.2f KB)\r\n",
-                                     app_index, block_index, received_size, received_size / 1024.0f);
+                        uart1_printf("APP %d downloaded to Block %d successfully. Size: %d bytes "
+                                     "(%.2f KB)\r\n",
+                                     app_index, block_index, received_size,
+                                     received_size / 1024.0f);
                     }
                     else
                     {
-                        uart1_printf("Failed to download APP %d to Block %d\r\n", app_index, block_index);
+                        uart1_printf("Failed to download APP %d to Block %d\r\n", app_index,
+                                     block_index);
                     }
                     break;
                 }

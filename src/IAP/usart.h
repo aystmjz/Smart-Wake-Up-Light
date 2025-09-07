@@ -1,16 +1,16 @@
 #ifndef __USART_H
 #define __USART_H
 
-#include "sys.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
 #include "dma.h"
+#include "sys.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
-#define UART1_TX_SIZE 128
-#define UART1_RX_SIZE 2048
-#define UART1_RX_MAX 256 // 串口一次能接受的数据量
-#define BLOCK_NUM 10
+#define UART1_TX_SIZE       128
+#define UART1_RX_SIZE       2048
+#define UART1_RX_MAX        256 // 串口一次能接受的数据量
+#define BLOCK_NUM           10
 
 #define UART_DATA_AVAILABLE (UCB_DATA.RxDataOUT != UCB_DATA.RxDataIN)
 

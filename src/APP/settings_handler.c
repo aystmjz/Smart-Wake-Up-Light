@@ -27,14 +27,14 @@ void KeyNumber_Set_Clock()
 	int8_t EncoderNum;
 	uint8_t KeyNum;
 
-	KeyNum = Key_GetNumber();
+	KeyNum = Key_GetEvent();
 	while (KeyNum != 2)
 	{
-		KeyNum = Key_GetNumber();
+		KeyNum = Key_GetEvent();
 
 		while (!KeyNum)
 		{
-			KeyNum = Key_GetNumber();
+			KeyNum = Key_GetEvent();
 
 			OLED_Clear(WHITE);
 
@@ -75,7 +75,7 @@ void KeyNumber_Set_Clock()
 			if (Time_Choose_Flag == 1)
 				Time_Choose_Flag = -1;
 
-			EncoderNum = Encoder_Get_Div4();
+			EncoderNum = Encoder_GetDelta();
 			if (EncoderNum)
 			{
 				switch (Time_Choose)
@@ -125,15 +125,15 @@ void KeyNumber_Set_Alarm()
 	AlarmTypeDef alarm_temp;
 	uint8_t Data[200];
 
-	KeyNum = Key_GetNumber();
+	KeyNum = Key_GetEvent();
 	while (KeyNum != 2)
 	{
-		KeyNum = Key_GetNumber();
+		KeyNum = Key_GetEvent();
 
 		while (!KeyNum)
 		{
 
-			KeyNum = Key_GetNumber();
+			KeyNum = Key_GetEvent();
 
 			OLED_Clear(WHITE);
 
@@ -195,7 +195,7 @@ void KeyNumber_Set_Alarm()
 			if (Alarm_Choose_Flag == 1)
 				Alarm_Choose_Flag = -1;
 
-			EncoderNum = Encoder_Get_Div4();
+			EncoderNum = Encoder_GetDelta();
 			if (EncoderNum)
 			{
 				if (Alarm_Choose < 7)
@@ -255,14 +255,14 @@ void KeyNumber_Set_Other()
 	int8_t EncoderNum;
 	uint8_t KeyNum;
 
-	KeyNum = Key_GetNumber();
+	KeyNum = Key_GetEvent();
 	while (KeyNum != 2)
 	{
-		KeyNum = Key_GetNumber();
+		KeyNum = Key_GetEvent();
 
 		while (!KeyNum)
 		{
-			KeyNum = Key_GetNumber();
+			KeyNum = Key_GetEvent();
 
 			OLED_Clear(WHITE);
 			LowPower_Flag = 1;
@@ -282,7 +282,7 @@ void KeyNumber_Set_Other()
 			if (Other_Choose_Flag == 1)
 				Other_Choose_Flag = -1;
 
-			EncoderNum = Encoder_Get_Div4();
+			EncoderNum = Encoder_GetDelta();
 			if (EncoderNum)
 			{
 				switch (Other_Choose)
@@ -322,11 +322,11 @@ void KeyNumber_Set()
 	OLED_Display(Image_BW, Part);
 
 	KeyNum = Key_Clear();
-	EncoderNum = Encoder_Get_Div4();
+	EncoderNum = Encoder_GetDelta();
 	while (!KeyNum)
 	{
-		KeyNum = Key_GetNumber();
-		EncoderNum = Encoder_Get_Div4();
+		KeyNum = Key_GetEvent();
+		EncoderNum = Encoder_GetDelta();
 
 		if (EncoderNum < 0)
 		{

@@ -92,13 +92,14 @@ void System_Init()
 		LOG_ERROR("[INIT] No Flash Memory Detected\r\n");
 	}
 
+	BT24_GPIO_Init();
 	if (Set.DeviceName[0] != 0xff)
 	{
-		BT24_Init(Set.DeviceName);
+		BT24_AT_Init(Set.DeviceName);
 	}
 	else
 	{
-		BT24_Init(BT_DEVICE_NAME);
+		BT24_AT_Init(BT_DEVICE_NAME);
 	}
 
 	Battery_UpdateLevel(AD_GetValue());

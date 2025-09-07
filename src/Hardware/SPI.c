@@ -51,8 +51,10 @@ void W25Q128_SPI_Stop(void)
 
 uint8_t W25Q128_SPI_SwapByte(uint8_t ByteSend)
 {
-    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) != SET);
+    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) != SET)
+        ;
     SPI_I2S_SendData(SPI2, ByteSend);
-    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) != SET);
+    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) != SET)
+        ;
     return SPI_I2S_ReceiveData(SPI2);
 }

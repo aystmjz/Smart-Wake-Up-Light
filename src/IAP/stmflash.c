@@ -23,8 +23,8 @@ void stmflash_read(uint32_t raddr, uint16_t *pbuf, uint16_t length)
 
     for (i = 0; i < length; i++)
     {
-        pbuf[i] = stmflash_read_halfword(raddr);    /* 读取2个字节 */
-        raddr += 2; /* 偏移2个字节 */
+        pbuf[i] = stmflash_read_halfword(raddr); /* 读取2个字节 */
+        raddr += 2;                              /* 偏移2个字节 */
     }
 }
 
@@ -42,7 +42,7 @@ void stmflash_write_nocheck(uint32_t waddr, uint16_t *pbuf, uint16_t length)
     for (i = 0; i < length; i++)
     {
         FLASH_ProgramHalfWord(waddr, pbuf[i]);
-        waddr += 2;     /* 指向下一个半字 */
+        waddr += 2; /* 指向下一个半字 */
     }
 }
 
@@ -60,23 +60,23 @@ void stmflash_write_nocheck(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 uint16_t g_flashbuf[STM32_SECTOR_SIZE / 2]; /* 缓冲区大小为2K字节 */
 void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 {
-    uint32_t secpos;        /* 扇区地址 */
-    uint16_t secoff;        /* 扇区内偏移地址(16位计数) */
-    uint16_t secremain;     /* 扇区剩余字节数(16位计数) */
+    uint32_t secpos;    /* 扇区地址 */
+    uint16_t secoff;    /* 扇区内偏移地址(16位计数) */
+    uint16_t secremain; /* 扇区剩余字节数(16位计数) */
     uint16_t i;
-    uint32_t offaddr;       /* 去掉0X08000000后的地址 */
+    uint32_t offaddr; /* 去掉0X08000000后的地址 */
 
     if (waddr < STM32_FLASH_BASE || (waddr >= (STM32_FLASH_BASE + 1024 * STM32_FLASH_SIZE)))
     {
-        return;     /* 非法地址 */
+        return; /* 非法地址 */
     }
 
-    FLASH_Unlock();     /* FLASH解锁 */
+    FLASH_Unlock(); /* FLASH解锁 */
 
-    offaddr = waddr - STM32_FLASH_BASE;             /* 实际偏移地址. */
-    secpos = offaddr / STM32_SECTOR_SIZE;           /* 扇区地址  0~255 for STM32F103ZET6 */
-    secoff = (offaddr % STM32_SECTOR_SIZE) / 2;     /* 扇区内的偏移(2个字节为计数单位.) */
-    secremain = STM32_SECTOR_SIZE / 2 - secoff;     /* 扇区剩余空间大小 */
+    offaddr = waddr - STM32_FLASH_BASE;         /* 实际偏移地址. */
+    secpos  = offaddr / STM32_SECTOR_SIZE;      /* 扇区地址  0~255 for STM32F103ZET6 */
+    secoff = (offaddr % STM32_SECTOR_SIZE) / 2; /* 扇区内的偏移(2个字节为计数单位.) */
+    secremain = STM32_SECTOR_SIZE / 2 - secoff; /* 扇区剩余空间大小 */
     if (length <= secremain)
     {
         secremain = length; /* 不大于该扇区范围 */
@@ -84,23 +84,25 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
 
     while (1)
     {
-        stmflash_read(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf, STM32_SECTOR_SIZE / 2); /* 读出整个扇区内容 */
-        for (i = 0; i < secremain; i++)                                                              /* 校验数据 */
+        stmflash_read(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf,
+                      STM32_SECTOR_SIZE / 2); /* 读出整个扇区内容 */
+        for (i = 0; i < secremain; i++)       /* 校验数据 */
         {
             if (g_flashbuf[secoff + i] != 0XFFFF)
             {
-                break;      /* 需要擦除 */
+                break; /* 需要擦除 */
             }
         }
-        if (i < secremain)  /* 需要擦除 */
-        { 
-            FLASH_ErasePage(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE);  /* 擦除这个扇区 */
+        if (i < secremain) /* 需要擦除 */
+        {
+            FLASH_ErasePage(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE); /* 擦除这个扇区 */
 
-            for (i = 0; i < secremain; i++)         /* 复制 */
+            for (i = 0; i < secremain; i++) /* 复制 */
             {
                 g_flashbuf[i + secoff] = pbuf[i];
             }
-            stmflash_write_nocheck(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf, STM32_SECTOR_SIZE / 2); /* 写入整个扇区内容 */
+            stmflash_write_nocheck(secpos * STM32_SECTOR_SIZE + STM32_FLASH_BASE, g_flashbuf,
+                                   STM32_SECTOR_SIZE / 2); /* 写入整个扇区内容 */
         }
         else
         {
@@ -110,14 +112,14 @@ void stmflash_write(uint32_t waddr, uint16_t *pbuf, uint16_t length)
         {
             break; /* 写入结束了 */
         }
-        else       /* 写入未结束 */
+        else /* 写入未结束 */
         {
             secpos++;               /* 扇区地址增1 */
             secoff = 0;             /* 偏移位置为0 */
             pbuf += secremain;      /* 指针偏移 */
             waddr += secremain * 2; /* 写地址偏移(16位数据的地址,需要*2) */
             length -= secremain;    /* 字节(16位)数目递减 */
-            
+
             if (length > (STM32_SECTOR_SIZE / 2))
             {
                 secremain = STM32_SECTOR_SIZE / 2; /* 下一个扇区还是写不完 */

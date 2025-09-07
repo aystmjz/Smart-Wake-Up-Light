@@ -7,12 +7,12 @@ void PWM_Run(uint8_t *Mod)
     struct tm Time_Temp;
     DS3231_ReadTime(&Time_Temp);
     stamp_last = DS3231_GetTimeStamp(&Time_Temp);
-    KeyNum = Key_GetNumber();
+    KeyNum = Key_GetEvent();
     PWM_Set(1);
     PWM_Enable();
     while (!KeyNum&&!BT24_GetStatus())
     {
-        KeyNum = Key_GetNumber();
+        KeyNum = Key_GetEvent();
         DS3231_ReadTime(&Time_Temp);
         stamp = DS3231_GetTimeStamp(&Time_Temp);
         Timer_Sec = stamp > stamp_last ? stamp - stamp_last : stamp_last - stamp;

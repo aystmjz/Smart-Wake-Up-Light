@@ -1,15 +1,29 @@
 #include "Battery.h"
 
-static uint8_t BatteryLevel = 0;
-static uint8_t BatteryState = 0;
+static BatteryState State; // 电池状态（0=正常，1=充电中，2=充满）
+static uint8_t Level;      // 当前电池电量百分比
 
-uint8_t Battery_calculate(uint16_t battery_ADC)
+/**
+ * 根据ADC值查表计算电池电量百分比
+ * @param battery_ADC 电池电压的ADC读数
+ * @return 电池电量百分比 (0-100)
+ */
+static uint8_t Battery_Calculate(uint16_t battery_ADC)
 {
-	uint8_t batteryLevel;
-	battery_ADC -= Battery_FULL-4160;
-	battery_ADC -= battery_ADC % 4;
-	if(battery_ADC>4160)return 100;
-	if(battery_ADC<3580)return 0;
+    uint8_t batteryLevel;
+
+    // 调整ADC值以匹配电池电压曲线
+    battery_ADC -= BATTERY_FULL - 4160;
+    battery_ADC -= battery_ADC % 4;
+
+    // 边界检查：高于4160认为是100%，低于3580认为是0%
+    if (battery_ADC > 4160)
+        return 100;
+    if (battery_ADC < 3580)
+        return 0;
+
+    // clang-format off
+	// 使用查表法将ADC值转换为电量百分比
 	switch (battery_ADC)
 	{
 	case 4160:batteryLevel=100;break;
@@ -113,7 +127,7 @@ uint8_t Battery_calculate(uint16_t battery_ADC)
 	case 3768:batteryLevel=44;break;
 	case 3764:batteryLevel=43;break;
 	case 3760:batteryLevel=42;break;//42
-	case 3756:batteryLevel=41;break;///41
+	case 3756:batteryLevel=41;break;//41
 	case 3752:batteryLevel=40;break;//40
 	case 3748:batteryLevel=39;break;
 	case 3744:batteryLevel=38;break;
@@ -164,52 +178,83 @@ uint8_t Battery_calculate(uint16_t battery_ADC)
 	case 3584:batteryLevel=1;break;
 	case 3580:batteryLevel=0;break;//0
 	}
-	return batteryLevel;
+    // clang-format on
+    return batteryLevel;
 }
+
+/**
+ * 更新电池电量和状态
+ * @param battery_ADC 电池电压的ADC读数
+ */
 void Battery_UpdateLevel(uint16_t battery_ADC)
 {
-	static uint8_t batteryLevel_Last[5], batteryLevel_Init_Flag = 1, batteryLevel_Index = 0, lastBattery;
-	uint16_t batteryLevel = 0;
-	battery_ADC *= BATTERY_MULT;
-	BatteryState = 0;
-	if (battery_ADC > Battery_CHARGE)
-	{
-		batteryLevel_Init_Flag = 1;
-		BatteryState= 1;
-	}
-	if (battery_ADC > Battery_DC)
-	{
-		batteryLevel_Init_Flag = 1;
-		BatteryState= 2;
-	}
-	if (batteryLevel_Init_Flag)
-	{
-		for (uint8_t i = 0; i < 5; i++)
-			batteryLevel_Last[i] = Battery_calculate(battery_ADC) + 5;
-		lastBattery = Battery_calculate(battery_ADC) + 5;
-		batteryLevel_Init_Flag = 0;
-	}
-	batteryLevel_Last[batteryLevel_Index] = Battery_calculate(battery_ADC);
-	batteryLevel_Index++;
-	batteryLevel_Index %= 5;
-	for (uint8_t i = 0; i < 5; i++)
-	{
-		batteryLevel += batteryLevel_Last[i];
-	}
-	if ((batteryLevel / 5) < lastBattery)
-		BatteryLevel = batteryLevel / 5;
-	if (BatteryLevel > 100)
-		BatteryLevel = 100;
+    static uint8_t batteryLevel_Last[5], batteryLevel_Init_Flag = 1, batteryLevel_Index = 0,
+                                         lastBattery;
+    uint16_t batteryLevel = 0;
+
+    // 根据硬件配置调整ADC值
+    battery_ADC *= BATTERY_MULT;
+
+    // 重置电池状态
+    State = BATTERY_STATE_NORMAL;
+
+    // 检查是否正在充电（电压高于充电阈值）
+    if (battery_ADC > BATTERY_CHARGE)
+    {
+        batteryLevel_Init_Flag = 1;
+        State                  = BATTERY_STATE_CHARGING;
+        return;
+    }
+
+    // 检查是否充满（电压高于充满阈值但低于充电阈值）
+    if (battery_ADC > BATTERY_DC)
+    {
+        batteryLevel_Init_Flag = 1;
+        State                  = BATTERY_STATE_FULL;
+        return;
+    }
+
+    // 初始化历史电量数组
+    if (batteryLevel_Init_Flag)
+    {
+        for (uint8_t i = 0; i < 5; i++)
+            batteryLevel_Last[i] = Battery_Calculate(battery_ADC) + 5;
+        lastBattery            = Battery_Calculate(battery_ADC) + 5;
+        batteryLevel_Init_Flag = 0;
+    }
+
+    // 更新历史电量数组（循环缓冲区）
+    batteryLevel_Last[batteryLevel_Index] = Battery_Calculate(battery_ADC);
+    batteryLevel_Index++;
+    batteryLevel_Index %= 5;
+
+    // 计算平均电量
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        batteryLevel += batteryLevel_Last[i];
+    }
+
+    // 只有当电量下降时才更新，防止电量跳变
+    if ((batteryLevel / 5) < lastBattery)
+        Level = batteryLevel / 5;
 }
 
-uint8_t Battery_GetLevel()
+/**
+ * 获取当前电池电量
+ * @return 电池电量百分比
+ */
+uint8_t Battery_GetLevel(void)
 {
-	return BatteryLevel;
+    return Level;
 }
 
-uint8_t Battery_GetState()
+/**
+ * 获取当前电池状态
+ * @return 电池状态（0=正常，1=充电中，2=充满）
+ */
+BatteryState Battery_GetState(void)
 {
-	return BatteryState;
+    return State;
 }
 
 // int16_t AD_Value = 0;
@@ -220,6 +265,6 @@ uint8_t Battery_GetState()
 // 	AD_Value = AD_GetValue();
 // 	Battery_UpdateLevel(AD_Value);
 // 	Voltage = (float)AD_Value / 4095.0  * 3.3;
-// 	sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value*2, Voltage*2,Battery_GetLevel(),Battery_GetState());
-// 	Debug_printf(Debug_str);
+// 	sprintf(Debug_str, "AD_Value:%d Voltage:%f Battery:%d State:%d\r\n", AD_Value*2,
+// Voltage*2,Battery_GetLevel(),Battery_GetState()); 	Debug_printf(Debug_str);
 // }

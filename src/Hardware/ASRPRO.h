@@ -1,16 +1,16 @@
 #ifndef __ASRPRO_H
 #define __ASRPRO_H
 
-#include "sys.h"
-#include "UART.h"
 #include "Delay.h"
+#include "UART.h"
+#include "sys.h"
 
+// ASRPRO模块串口通信波特率
 #define ASRPRO_DEVICE_BAUD 115200
 
 void ASRPRO_Init(void);
 void ASRPRO_Power_ON(void);
 void ASRPRO_Power_OFF(void);
-void ASRPRO_Power_Control(uint8_t state);
 uint8_t ASRPRO_Power_Turn(void);
 void ASRPRO_Mute_ON(void);
 void ASRPRO_Mute_OFF(void);

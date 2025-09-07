@@ -11,7 +11,7 @@ UCB_DATE UCB_DATA;
 void uart1_rx_ptr_init(void)
 {
     // 初始化控制块指针
-    UCB_DATA.RxDataIN = &UCB_DATA.RxDataPtr[0];
+    UCB_DATA.RxDataIN  = &UCB_DATA.RxDataPtr[0];
     UCB_DATA.RxDataOUT = &UCB_DATA.RxDataPtr[0];
     UCB_DATA.RxDataEND = &UCB_DATA.RxDataPtr[BLOCK_NUM - 1];
 
@@ -32,26 +32,27 @@ void uart1_init(uint32_t bound)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
     USART_DeInit(USART1);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; // 复用推挽输出
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP; // 复用推挽输出
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; // 浮空输入
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; // 抢占优先级3
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;        // 子优先级3
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;           // IRQ通道使能
+    NVIC_InitStructure.NVIC_IRQChannel                   = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;      // 抢占优先级3
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 3;      // 子优先级3
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE; // IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);
 
-    USART_InitStructure.USART_BaudRate = bound;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;                     // 字长为8位数据格式
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;                          // 一个停止位
-    USART_InitStructure.USART_Parity = USART_Parity_No;                             // 无奇偶校验位
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; // 无硬件数据流控制
-    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;                 // 收发模式
+    USART_InitStructure.USART_BaudRate   = bound;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b; // 字长为8位数据格式
+    USART_InitStructure.USART_StopBits   = USART_StopBits_1;    // 一个停止位
+    USART_InitStructure.USART_Parity     = USART_Parity_No;     // 无奇偶校验位
+    USART_InitStructure.USART_HardwareFlowControl =
+        USART_HardwareFlowControl_None;                             // 无硬件数据流控制
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx; // 收发模式
     USART_Init(USART1, &USART_InitStructure);
 
     USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
@@ -70,7 +71,8 @@ void uart1_init(uint32_t bound)
  */
 void uart1_send_byte(uint8_t byte)
 {
-    while ((USART1->SR & 0x40) == 0); // 等待发送完成
+    while ((USART1->SR & 0x40) == 0)
+        ; // 等待发送完成
     USART1->DR = byte;
 }
 
@@ -109,26 +111,26 @@ void uart1_printf(const char *format, ...)
 uint16_t uart1_read_data(uint8_t *buffer, uint16_t max_len)
 {
     uint16_t data_len = 0;
-    
+
     if (UART_DATA_AVAILABLE && buffer != NULL)
     {
         data_len = UCB_DATA.RxDataOUT->end - UCB_DATA.RxDataOUT->start + 1;
-        
+
         // 限制读取长度不超过最大长度
         if (data_len > max_len)
         {
             data_len = max_len;
         }
-        
+
         // 复制数据到目标缓冲区
         for (uint16_t i = 0; i < data_len; i++)
         {
             buffer[i] = UCB_DATA.RxDataOUT->start[i];
         }
-        
+
         uart1_update_endptr();
     }
-    
+
     return data_len;
 }
 /**
@@ -156,25 +158,24 @@ uint8_t uart1_scanf(const char *format, ...)
     static char input_buffer[UART1_RX_MAX];
     uint16_t data_len;
     uint8_t result = 0;
-    
+
     // 从串口接收缓冲区读取数据
-    data_len = uart1_read_data((uint8_t*)input_buffer, sizeof(input_buffer) - 1);
-    
+    data_len = uart1_read_data((uint8_t *)input_buffer, sizeof(input_buffer) - 1);
+
     if (data_len > 0)
     {
         // 确保字符串以'\0'结尾
         input_buffer[data_len] = '\0';
-        
+
         // 使用sscanf解析数据
         va_list args;
         va_start(args, format);
         result = vsscanf(input_buffer, format, args);
         va_end(args);
     }
-    
+
     return result;
 }
-
 
 // 串口1中断
 #ifdef BUILD_BOOT_LOADER
@@ -217,7 +218,7 @@ void USART1_IRQHandler()
         else
         {
             UCB_DATA.RxDataIN->start = UART1_RX_BUFF; // 回到缓冲区起始位置
-            UCB_DATA.RxCounter = 0;                   // 重置计数器
+            UCB_DATA.RxCounter       = 0;             // 重置计数器
         }
         DMA_Cmd(DMA1_Channel5, DISABLE);
         // 重新配置DMA

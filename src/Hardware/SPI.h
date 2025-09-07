@@ -3,6 +3,7 @@
 
 #include "sys.h"
 
+// W25Q128 SPI片选引脚宏定义
 #define W25Q128_SPI_SS_SET PBout(12)
 
 void W25Q128_SPI_Init(void);

@@ -2,23 +2,21 @@
 
 static char AT_cmd[ATCMD_BUFF_LEN];
 
-uint8_t BT24_AT_Init(char *DeviceName);
-
 void BT24_GPIO_Init(void)
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 #ifndef BUILD_BOOT_LOADER
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_6;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 #endif
 
@@ -34,12 +32,6 @@ void BT24_GPIO_Init(void)
     GPIO_SetBits(GPIOA, GPIO_Pin_6);
 
 #endif
-}
-
-void BT24_Init(char *DeviceName)
-{
-    BT24_GPIO_Init();
-    BT24_AT_Init(DeviceName);
 }
 
 // 发送高电平脉冲进行复位
@@ -78,32 +70,37 @@ void BT24_Disconnect(void)
  * @brief 获取蓝牙模块连接状态
  * @return 蓝牙连接状态，0表示未连接，1表示已连接
  */
-uint8_t BT24_GetStatus(void)
+BT24_Status BT24_GetStatus(void)
 {
-    // 读取GPIOB的Pin9引脚电平状态作为蓝牙连接状态
-    return GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9);
+    return (BT24_Status)GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9);
 }
 
-void ATcmd_Main_printf(char *SendBuf)
+// AT指令发送函数
+static void ATcmd_Main_printf(char *SendBuf)
 {
     BT24_printf(SendBuf);
 }
 
-void ATcmd_Debug_printf(char *SendBuf)
+// AT指令调试信息打印函数
+static void ATcmd_Debug_printf(char *SendBuf)
 {
     LOG_ERROR("[BT24] %s", SendBuf);
 }
 
-void ATcmd_Send(char *ATcmd)
+// 发送AT指令并延时
+static void ATcmd_Send(char *ATcmd)
 {
     ATcmd_Main_printf(ATcmd);
     Delay_ms(100);
 }
 
-/// @brief 从接收缓存中扫描指定应答
-/// @param Ack 指定应答
-/// @return 存在指定应答返回1
-uint8_t ATcmd_Scan(char *Ack)
+/**
+ * @brief 从接收缓存中扫描指定应答
+ * @param Ack 指定应答字符串
+ * @return 存在指定应答返回1，不存在返回0
+ * @details 在全局接收缓存ATcmd_RxBuffer中查找指定的应答字符串
+ */
+static uint8_t ATcmd_Scan(char *Ack)
 {
     char *strx;
     strx = strstr((const char *)ATcmd_RxBuffer, (const char *)Ack);
@@ -113,16 +110,20 @@ uint8_t ATcmd_Scan(char *Ack)
         return 0;
 }
 
-/// @brief 从接收缓存中提取指定数据
-/// @param Data 写入位置
-/// @param Flag 数据标志
-/// @param Len  数据长度
-/// @return 成功提取返回1
-uint8_t Data_Scan(char *Data, char *Flag, uint8_t Len)
+/**
+ * @brief 从接收缓存中提取指定数据
+ * @param Data 写入位置指针
+ * @param Flag 数据标志字符串
+ * @param Len  要提取的数据长度
+ * @return 成功提取返回1，失败返回0
+ * @details 在AT指令响应缓存中查找指定标志，从标志后提取指定长度的数据
+ *          并存储到Data指向的内存位置，自动添加字符串结束符'\0'
+ */
+static uint8_t Data_Scan(char *Data, char *Flag, uint8_t Len)
 {
     char *pstr, *pData = Data;
     uint8_t FlagLen = strlen(Flag);
-    pstr = strstr((const char *)ATcmd_RxBuffer, (const char *)Flag);
+    pstr            = strstr((const char *)ATcmd_RxBuffer, (const char *)Flag);
     if (!pstr)
         return 0;
     pstr += FlagLen;
@@ -136,11 +137,15 @@ uint8_t Data_Scan(char *Data, char *Flag, uint8_t Len)
     return 1;
 }
 
-/// @brief 从接收缓存中提取指定数据(整数)
-/// @param Flag 数据标志
-/// @param Len  数据长度
-/// @return 提取的整数
-uint16_t Data_ScanInt(char *Flag, uint8_t Len)
+/**
+ * @brief 从接收缓存中提取指定数据(整数)
+ * @param Flag 数据标志字符串
+ * @param Len  数据长度
+ * @return 提取的整数值，失败返回0
+ * @details 从AT指令响应缓存中查找指定标志后的数据，
+ *          提取指定长度的字符串并转换为整数返回
+ */
+static uint16_t Data_ScanInt(char *Flag, uint8_t Len)
 {
     char Data_Temp[10];
     if (!Data_Scan(Data_Temp, Flag, Len))
@@ -148,13 +153,17 @@ uint16_t Data_ScanInt(char *Flag, uint8_t Len)
     return atoi(Data_Temp);
 }
 
-/// @brief 发送AT_cmd中指令并等待目标答复
-/// @param Ack 目标答复
-/// @param Error 错误提示
-/// @param Wait_Time 等待答复时间
-/// @param Try_Time 重试次数
-/// @return 成功：1	失败：0
-uint8_t ATcmd_Wait(char *Ack, char *Error, uint16_t Wait_Time, uint8_t Try_Time)
+/**
+ * @brief 发送AT_cmd中指令并等待目标答复
+ * @param Ack 目标答复字符串
+ * @param Error 错误提示信息
+ * @param Wait_Time 等待答复的超时时间(毫秒)
+ * @param Try_Time 重试次数，0表示无限重试
+ * @return 成功返回1，失败返回0
+ * @details 发送存储在全局变量AT_cmd中的AT指令，等待指定的应答，
+ *          支持超时控制和重试机制
+ */
+static uint8_t ATcmd_Wait(char *Ack, char *Error, uint16_t Wait_Time, uint8_t Try_Time)
 {
     ATcmd_Clear_Buffer();
     Delay_ms(100);
@@ -183,11 +192,15 @@ uint8_t ATcmd_Wait(char *Ack, char *Error, uint16_t Wait_Time, uint8_t Try_Time)
     return 0;
 }
 
-/// @brief 生成AT指令到AT_cmd
-/// @param num 指令参数数量
-/// @param cmd 指令名称
-/// @param
-void ATcmd_Make(int num, const char *cmd, ...)
+/**
+ * @brief 生成AT指令到AT_cmd
+ * @param num 指令参数数量
+ * @param cmd 指令名称
+ * @param ... 可变参数列表，包含指令参数
+ * @details 根据提供的指令名称和参数生成完整的AT指令字符串，
+ *          并存储在全局变量AT_cmd中，供后续发送使用
+ */
+static void ATcmd_Make(int num, const char *cmd, ...)
 {
     va_list arg_list;
     char cmd_temp[ATCMD_BUFF_LEN] = {0};
@@ -217,11 +230,16 @@ void ATcmd_Make(int num, const char *cmd, ...)
     va_end(arg_list);
     sprintf(AT_cmd, cmd_temp);
 }
-/// @brief 生成AT指令并发送
-/// @param num 指令参数数量
-/// @param cmd 指令名称
-/// @param
-void ATcmd_MakeSend(int num, const char *cmd, ...)
+
+/**
+ * @brief 生成AT指令并发送
+ * @param num 指令参数数量
+ * @param cmd 指令名称
+ * @param ... 可变参数列表，包含指令参数
+ * @details 根据提供的指令名称和参数生成完整的AT指令字符串，
+ *          并立即通过串口发送出去，不等待响应
+ */
+static void ATcmd_MakeSend(int num, const char *cmd, ...)
 {
     va_list arg_list;
     char cmd_temp[ATCMD_BUFF_LEN] = {0};
@@ -254,28 +272,35 @@ void ATcmd_MakeSend(int num, const char *cmd, ...)
 
 /**
  * @brief 初始化蓝牙模块参数（波特率、设备名称等）
+ * @param DeviceName 要设置的蓝牙设备名称
  * @return 成功返回1，失败返回0
  */
 uint8_t BT24_AT_Init(char *DeviceName)
 {
-    if (BT24_GetStatus())
+    // 检查蓝牙模块是否已连接，如果已连接则无法进入AT模式进行配置
+    if (BT24_GetStatus() == BT24_CONNECTED)
     {
         LOG_WARN("[BT24] Device Already Connected - Cannot Enter AT Mode\r\n");
         return 0;
     }
 
+    // 初始化串口通信，首先尝试115200波特率
     ATcmd_UartInit(115200);
     LOG_INFO("[BT24] Initializing AT Command Interface\r\n");
 
+    // 发送AT测试指令，检测模块是否响应
     ATcmd_Set("AT\r\n");
     if (!ATcmd_Wait("OK", "Device not responding in baud_115200\r\n", 500, 3))
     {
+        // 如果115200波特率无响应，尝试9600波特率
         ATcmd_UartInit(9600);
         ATcmd_Set("AT\r\n");
         if (!ATcmd_Wait("OK", "Device not responding in baud_9600\r\n", 500, 3))
         {
+            // 如果9600波特率也无响应，则初始化失败
             ATcmd_UartInit(DEBUG_BAUD);
-            LOG_ERROR("[BT24] Device Initialization Failed: No Response at Baud Rates 9600/115200.\r\n");
+            LOG_ERROR(
+                "[BT24] Device Initialization Failed: No Response at Baud Rates 9600/115200.\r\n");
             return 0;
         }
         LOG_INFO("[BT24] Device recognized (9600)\r\n");
@@ -285,11 +310,13 @@ uint8_t BT24_AT_Init(char *DeviceName)
         LOG_INFO("[BT24] Device recognized (115200)\r\n");
     }
 
+    // 读取当前波特率设置
     ATcmd_Make(0, "BAUD");
     if (ATcmd_Wait("+BAUD", "Read BAUD failed\r\n", 500, 3))
     {
         LOG_INFO("[BT24] Current Baud Code = %d\r\n", Data_ScanInt("+BAUD=", 1));
 
+        // 如果当前波特率与目标波特率不一致，则进行设置
         if (Data_ScanInt("+BAUD=", 1) != BT_DEVICE_BAUD)
         {
             LOG_INFO("[BT24] BAUD Changing...\r\n");
@@ -299,8 +326,8 @@ uint8_t BT24_AT_Init(char *DeviceName)
             if (ATcmd_Wait("OK", "Set BAUD failed\r\n", 500, 3))
             {
                 LOG_INFO("[BT24] Change Baud Code = %d ,Reseting... \r\n", BT_DEVICE_BAUD);
-                BT24_Reset();
-                NVIC_SystemReset();
+                BT24_Reset();       // 复位蓝牙模块使新波特率生效
+                NVIC_SystemReset(); // 系统重启以应用新配置
             }
             else
             {
@@ -309,6 +336,7 @@ uint8_t BT24_AT_Init(char *DeviceName)
         }
     }
 
+    // 读取并设置设备名称
     ATcmd_Make(0, "NAME");
     if (ATcmd_Wait("+NAME", "Error:Read NAME failed\r\n", 500, 2))
     {
@@ -317,6 +345,7 @@ uint8_t BT24_AT_Init(char *DeviceName)
         {
             LOG_INFO("[BT24] Current Name = %s\r\n", name_value);
 
+            // 如果当前设备名称与目标名称不一致，则进行设置
             if (strncmp(name_value, DeviceName, strlen(DeviceName)) != 0)
             {
                 LOG_INFO("[BT24] Name Changing...\r\n");
@@ -326,7 +355,7 @@ uint8_t BT24_AT_Init(char *DeviceName)
                 if (ATcmd_Wait("OK", "Set NAME failed\r\n", 500, 3))
                 {
                     LOG_INFO("[BT24] Change Name = %s ,Reseting... \r\n", DeviceName);
-                    BT24_Reset();
+                    BT24_Reset(); // 重置蓝牙模块使新名称生效
                 }
                 else
                 {
@@ -335,8 +364,19 @@ uint8_t BT24_AT_Init(char *DeviceName)
             }
         }
     }
+    ATcmd_UartInit(DEBUG_BAUD);
     LOG_INFO("[BT24] Bluetooth Name: %s\r\n", DeviceName);
+
     return 1;
+}
+
+/**
+ * @brief 通过蓝牙发送字符串数据
+ * @param str 要发送的字符串
+ */
+void BT24_PubString(char *str)
+{
+    BT24_printf(str);
 }
 
 // void test()
@@ -347,8 +387,3 @@ uint8_t BT24_AT_Init(char *DeviceName)
 //     ATcmd_Wait("ok", NULL, 200, 1);
 //     ATcmd_Make_Send(5,"QMTPUBEX","0","0","0","0","aystmjz/topic/hxd");
 // }
-
-void BT24_PubString(char *str)
-{
-    BT24_printf(str);
-}

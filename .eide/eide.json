@@ -2,10 +2,7 @@
   "name": "Smart-Wake-Up-Light",
   "type": "ARM",
   "dependenceList": [],
-  "srcDirs": [
-    "src",
-    "lib"
-  ],
+  "srcDirs": ["src", "lib"],
   "outDir": "build",
   "deviceName": "STM32F102C8",
   "packDir": null,
@@ -20,10 +17,7 @@
   },
   "targets": {
     "Debug": {
-      "excludeList": [
-        "src/OLED/font_bin_tool",
-        "src/OLED/rle_compress_tool"
-      ],
+      "excludeList": ["src/OLED/font_bin_tool", "src/OLED/rle_compress_tool"],
       "toolchain": "AC5",
       "compileConfig": {
         "cpuType": "Cortex-M3",
@@ -127,10 +121,7 @@
           "src/IAP"
         ],
         "libList": [],
-        "defineList": [
-          "USE_STDPERIPH_DRIVER",
-          "STM32F10X_MD"
-        ]
+        "defineList": ["USE_STDPERIPH_DRIVER", "STM32F10X_MD"]
       },
       "builderOptions": {
         "GCC": {
