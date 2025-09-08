@@ -1,4 +1,5 @@
-﻿#include "OLED_Data.h"
+﻿// clang-format off
+#include "OLED_Data.h"
 
 /*宽16像素，高16像素*/
 const ChineseCell16x16_t OLED_Hanzi16x16[] = {//年月周一二三四五六日0123456789℃:时间闹钟其他设置■√×

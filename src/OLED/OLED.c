@@ -12,15 +12,15 @@ uint8_t OLED_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_15;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_3;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_4;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
@@ -78,7 +78,7 @@ PAINT Paint;
  */
 uint8_t Epaper_READBUSY(void)
 {
-    uint32_t timeout = 0;
+    uint32_t timeout           = 0;
     const uint32_t timeout_max = 0x8fffff;
 
     while (1)
@@ -87,9 +87,9 @@ uint8_t Epaper_READBUSY(void)
         {
             return 0; // 成功等待到空闲状态
         }
-        
+
         timeout++;
-        
+
         if (timeout >= timeout_max)
         {
             return 1; // 等待超时
@@ -177,8 +177,8 @@ void OLED_Display(u8 *Image, u8 Mode)
     {
         OLED_GUIInit();
         unsigned int Width, Height, i, j;
-        u32 k = 0;
-        Width = 296;
+        u32 k  = 0;
+        Width  = 296;
         Height = 16;
         OLED_WR_REG(0x24);
         for (j = 0; j < Height; j++)
@@ -202,8 +202,8 @@ void OLED_Display(u8 *Image, u8 Mode)
 void EPD_Dis_PartAll(u8 *Image)
 {
     unsigned int Width, Height, i, j;
-    u32 k = 0;
-    Width = 296;
+    u32 k  = 0;
+    Width  = 296;
     Height = 16;
 
     OLED_RES_Clr();
@@ -277,20 +277,20 @@ void Paint_NewImage(u8 *image, u16 Width, u16 Height, u16 Rotate, u16 Color)
     Paint.Image = 0x00;
     Paint.Image = image;
 
-    Paint.WidthMemory = Width;
+    Paint.WidthMemory  = Width;
     Paint.HeightMemory = Height;
-    Paint.Color = Color;
-    Paint.WidthByte = (Width % 8 == 0) ? (Width / 8) : (Width / 8 + 1);
-    Paint.HeightByte = Height;
-    Paint.Rotate = Rotate;
+    Paint.Color        = Color;
+    Paint.WidthByte    = (Width % 8 == 0) ? (Width / 8) : (Width / 8 + 1);
+    Paint.HeightByte   = Height;
+    Paint.Rotate       = Rotate;
     if (Rotate == ROTATE_0 || Rotate == ROTATE_180)
     {
-        Paint.Width = Width;
+        Paint.Width  = Width;
         Paint.Height = Height;
     }
     else
     {
-        Paint.Width = Height;
+        Paint.Width  = Height;
         Paint.Height = Width;
     }
 }
@@ -327,7 +327,7 @@ void Paint_SetPixel(u16 Xpoint, u16 Ypoint, u16 Color)
     default:
         return;
     }
-    Addr = X / 8 + Y * Paint.WidthByte;
+    Addr  = X / 8 + Y * Paint.WidthByte;
     Rdata = Paint.Image[Addr];
     if (Color == BLACK)
     {
@@ -346,7 +346,7 @@ void OLED_Clear(u16 Color)
     {
         for (X = 0; X < Paint.WidthByte; X++)
         { // 8 pixel =  1 byte
-            Addr = X + Y * Paint.WidthByte;
+            Addr              = X + Y * Paint.WidthByte;
             Paint.Image[Addr] = Color;
         }
     }
@@ -368,13 +368,13 @@ void OLED_DrawLine(u16 Xstart, u16 Ystart, u16 Xend, u16 Yend, u16 Color)
     u8 Dotted_Len;
     Xpoint = Xstart;
     Ypoint = Ystart;
-    dx = (int)Xend - (int)Xstart >= 0 ? Xend - Xstart : Xstart - Xend;
-    dy = (int)Yend - (int)Ystart <= 0 ? Yend - Ystart : Ystart - Yend;
+    dx     = (int)Xend - (int)Xstart >= 0 ? Xend - Xstart : Xstart - Xend;
+    dy     = (int)Yend - (int)Ystart <= 0 ? Yend - Ystart : Ystart - Yend;
 
     XAddway = Xstart < Xend ? 1 : -1;
     YAddway = Ystart < Yend ? 1 : -1;
 
-    Esp = dx + dy;
+    Esp        = dx + dy;
     Dotted_Len = 0;
 
     for (;;)
@@ -425,7 +425,7 @@ void OLED_DrawCircle(u16 X_Center, u16 Y_Center, u16 Radius, u16 Color, u8 mode)
     u16 XCurrent, YCurrent;
     XCurrent = 0;
     YCurrent = Radius;
-    Esp = 3 - (Radius << 1);
+    Esp      = 3 - (Radius << 1);
     if (mode)
     {
         while (XCurrent <= YCurrent)
@@ -486,7 +486,8 @@ void OLED_DrawChart(u16 Xstart, u16 Ystart, u16 Width, u16 Height, u8 *Data, u8 
     y_gap = Height / (float)100;
     for (u8 i = 0; i < Num - 1; i++)
     {
-        OLED_DrawLine(Xstart + i * x_gap, Ystart + Height - Data[i] * y_gap, Xstart + (i + 1) * x_gap, Ystart + Height - Data[i + 1] * y_gap, Color);
+        OLED_DrawLine(Xstart + i * x_gap, Ystart + Height - Data[i] * y_gap,
+                      Xstart + (i + 1) * x_gap, Ystart + Height - Data[i + 1] * y_gap, Color);
     }
 }
 
@@ -499,7 +500,8 @@ void OLED_DrawChart(u16 Xstart, u16 Ystart, u16 Width, u16 Height, u8 *Data, u8 
  * @param dataIndex: 在解压后的数据中要获取的字节位置索引
  * @return: 返回解压后指定位置的字节值，如果越界则返回0
  */
-uint8_t RLE_Decompress(const uint8_t *rleData, const uint16_t *rleIndex, uint8_t charIndex, uint16_t dataIndex)
+uint8_t RLE_Decompress(const uint8_t *rleData, const uint16_t *rleIndex, uint8_t charIndex,
+                       uint16_t dataIndex)
 {
     uint16_t start, end, pos;
 
@@ -547,7 +549,8 @@ void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
     if (Size == OLED_6X8)
         Size2 = 6;
     else
-        Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) * (Size / 2); // 得到字体一个字符对应点阵集所占的字节数
+        Size2 = (Size / 8 + ((Size % 8) ? 1 : 0)) *
+                (Size / 2); // 得到字体一个字符对应点阵集所占的字节数
 
     if (Size == OLED_52X104)
         Char1 = Char - '0'; // 从0开始
@@ -598,7 +601,7 @@ void OLED_ShowChar(u16 X, u16 Y, u8 Char, u8 Size, u16 Color)
         X++;
         if ((Size != 8) && ((X - x0) == Size / 2))
         {
-            X = x0;
+            X  = x0;
             y0 = y0 + 8;
         }
         Y = y0;
@@ -656,7 +659,8 @@ void OLED_ShowNum(u16 X, u16 Y, u32 Num, u16 Len, u8 Size, u16 Color)
  * @param ImageIndex 当前图像在RLE数据中的索引
  * @param Color 图像显示颜色
  */
-void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleData, const u16 *Image_rleIndex, u8 ImageIndex, u16 Color)
+void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleData,
+                        const u16 *Image_rleIndex, u8 ImageIndex, u16 Color)
 {
     u16 j = 0;
     u16 i, n, temp, m;
@@ -681,7 +685,7 @@ void OLED_RLE_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image_rleD
             X++;
             if ((X - x0) == Sizex)
             {
-                X = x0;
+                X  = x0;
                 y0 = y0 + 8;
             }
             Y = y0;
@@ -724,7 +728,7 @@ void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Col
             X++;
             if ((X - x0) == Sizex)
             {
-                X = x0;
+                X  = x0;
                 y0 = y0 + 8;
             }
             Y = y0;
@@ -744,15 +748,12 @@ uint16_t utf8_to_unicode16(const uint8_t *utf8)
     else if ((utf8[0] & 0xE0) == 0xC0)
     {
         // 2-byte UTF-8: 110xxxxx 10xxxxxx
-        return ((utf8[0] & 0x1F) << 6) |
-               (utf8[1] & 0x3F);
+        return ((utf8[0] & 0x1F) << 6) | (utf8[1] & 0x3F);
     }
     else if ((utf8[0] & 0xF0) == 0xE0)
     {
         // 3-byte UTF-8: 1110xxxx 10xxxxxx 10xxxxxx
-        return ((utf8[0] & 0x0F) << 12) |
-               ((utf8[1] & 0x3F) << 6) |
-               (utf8[2] & 0x3F);
+        return ((utf8[0] & 0x0F) << 12) | ((utf8[1] & 0x3F) << 6) | (utf8[2] & 0x3F);
     }
     else
     {
@@ -820,7 +821,8 @@ void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单�
             }
         }
 #ifdef OLED_UNICODE_6X12FONT_ADDR
-        // 没找到就从字库中寻找,字库地址从(宏)开始 12*12字模U+0000 ~ U+FFFF，使用W25Q128_ReadData(uint32_t Address, uint8_t *DataArray, uint32_t Count);
+        // 没找到就从字库中寻找,字库地址从(宏)开始 12*12字模U+0000 ~
+        // U+FFFF，使用W25Q128_ReadData(uint32_t Address, uint8_t *DataArray, uint32_t Count);
         if (strcmp(OLED_Hanzi12x12[pIndex].Index, "") == 0)
         {
             // 没在内置字库中找到该汉字，尝试从Flash外置字库中读取
@@ -925,7 +927,7 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
         if (String[i] > '~') // 如果不属于英文字符
         {
             u8 SingleChinese[4] = {0};
-            SingleChinese[0] = String[i];
+            SingleChinese[0]    = String[i];
             i++;
             SingleChinese[1] = String[i];
             i++;
@@ -955,10 +957,10 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
  */
 void OLED_Printf(u16 X, u16 Y, u8 Size, u16 Color, const char *format, ...)
 {
-    static u8 String[OLED_PRINTF_BUF_SIZE];     // 定义字符数组
-    va_list arg;                                // 定义可变参数列表数据类型的变量arg
-    va_start(arg, format);                      // 从format开始，接收参数列表到arg变量
-    vsprintf((char *)String, format, arg);      // 使用vsprintf打印格式化字符串和参数列表到字符数组中
-    va_end(arg);                                // 结束变量arg
+    static u8 String[OLED_PRINTF_BUF_SIZE]; // 定义字符数组
+    va_list arg;                            // 定义可变参数列表数据类型的变量arg
+    va_start(arg, format);                  // 从format开始，接收参数列表到arg变量
+    vsprintf((char *)String, format, arg); // 使用vsprintf打印格式化字符串和参数列表到字符数组中
+    va_end(arg);                           // 结束变量arg
     OLED_ShowString(X, Y, String, Size, Color); // OLED显示字符数组（字符串）并返回字符串
 }

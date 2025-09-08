@@ -6,22 +6,24 @@
 /*中文字符字节宽度*/
 #define OLED_CHN_CHAR_WIDTH 3 // UTF-8编码格式给3，GB2312编码格式给2
 
-#define OLED_UNICODE_8X16FONT_ADDR 0x000000 // Unicode字库地址 0x000000 ~ 0x200000 (U+0000 ~ U+FFFF 大小2MB)
-#define OLED_UNICODE_6X12FONT_ADDR 0x200000 // Unicode字库地址 0x200000 ~ 0x380000 (U+0000 ~ U+FFFF 大小1.5MB)
+#define OLED_UNICODE_8X16FONT_ADDR \
+    0x000000 // Unicode字库地址 0x000000 ~ 0x200000 (U+0000 ~ U+FFFF 大小2MB)
+#define OLED_UNICODE_6X12FONT_ADDR \
+    0x200000 // Unicode字库地址 0x200000 ~ 0x380000 (U+0000 ~ U+FFFF 大小1.5MB)
 
 #define OLED_USE_RLE
 
 /*字模基本单元*/
 typedef struct
 {
-	uint8_t Data[32];					 // 字模数据
-	char Index[OLED_CHN_CHAR_WIDTH + 1]; // 汉字索引
+    uint8_t Data[32];                    // 字模数据
+    char Index[OLED_CHN_CHAR_WIDTH + 1]; // 汉字索引
 } ChineseCell16x16_t;
 
 typedef struct
 {
-	uint8_t Data[24];					 // 字模数据
-	char Index[OLED_CHN_CHAR_WIDTH + 1]; // 汉字索引
+    uint8_t Data[24];                    // 字模数据
+    char Index[OLED_CHN_CHAR_WIDTH + 1]; // 汉字索引
 } ChineseCell12x12_t;
 
 /*ASCII字模数据声明*/

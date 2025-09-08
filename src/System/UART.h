@@ -2,19 +2,20 @@
 #define __UART_H__
 
 #include "sys.h"
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
-#define ASRPRO_UART_REC_LEN 255
-#define BT24_UART_REC_LEN 1024
-#define DEBUG_BUFF_LEN 255
+// 串口接收缓冲区长度
+#define ASRPRO_UART_REC_LEN 255  // ASRPRO语音识别模块接收缓冲区长度
+#define BT24_UART_REC_LEN   1024 // BT24蓝牙模块接收缓冲区长度
+#define DEBUG_BUFF_LEN      255  // 调试信息缓冲区长度
 
-extern volatile uint16_t ASRPRORxCounter;
-extern volatile uint16_t BT24RxCounter;
-extern volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // 接收缓冲
-extern volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];	 // 接收缓冲
-extern char Debug_str[DEBUG_BUFF_LEN];
+// 声明外部变量
+extern volatile uint16_t ASRPRORxCounter;                    // ASRPRO模块接收计数器
+extern volatile uint16_t BT24RxCounter;                      // BT24模块接收计数器
+extern volatile uint8_t ASRPRORxBuffer[ASRPRO_UART_REC_LEN]; // ASRPRO接收缓冲区
+extern volatile uint8_t BT24RxBuffer[BT24_UART_REC_LEN];     // BT24接收缓冲区
 
 void UART1_Init(uint32_t bound);
 void UART2_Init(uint32_t bound);
