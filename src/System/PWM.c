@@ -54,6 +54,7 @@ void PWM_Init(void)
  */
 void PWM_Enable(void)
 {
+    TIM_CtrlPWMOutputs(TIM1, ENABLE);
     TIM_Cmd(TIM1, ENABLE);
 }
 
@@ -63,7 +64,8 @@ void PWM_Enable(void)
  */
 void PWM_Disable(void)
 {
-    TIM_Cmd(TIM1, ENABLE);
+    TIM_CtrlPWMOutputs(TIM1, DISABLE);
+    TIM_Cmd(TIM1, DISABLE);
 }
 
 /**

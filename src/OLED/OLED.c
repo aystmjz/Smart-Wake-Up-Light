@@ -736,6 +736,36 @@ void OLED_ShowImage(u16 X, u16 Y, u16 Sizex, u16 Sizey, const u8 *Image, u16 Col
     }
 }
 
+void OLED_ShowCustomChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 自定义的汉字单字打印;
+{
+    u8 pIndex;
+
+    if (Size == OLED_8X16)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+        OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
+    }
+    else if (Size == OLED_6X12)
+    {
+        for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
+        {
+            /*找到匹配的汉字*/
+            if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
+            {
+                break; // 跳出循环，此时pIndex的值为指定汉字的索引
+            }
+        }
+        OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
+    }
+}
+
 #if defined(OLED_UNICODE_8X16FONT_ADDR) || defined(OLED_UNICODE_6X12FONT_ADDR)
 
 uint16_t utf8_to_unicode16(const uint8_t *utf8)
@@ -769,78 +799,54 @@ uint16_t utf8_to_unicode16(const uint8_t *utf8)
  * @param Hanzi 要显示的汉字，范围：字库字符
  * @param Size 汉字的字体大小
  * @param Color 显示颜色
+ * @param isCustom 显示颜色
  */
 void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单字打印;
 {
-    u8 pIndex;
     u8 hanziData[32];
     uint32_t unicode;
     uint32_t flashAddr;
 
     if (Size == OLED_8X16)
     {
-        for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
-        {
-            /*找到匹配的汉字*/
-            if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
-            {
-                break; // 跳出循环，此时pIndex的值为指定汉字的索引
-            }
-        }
+
 #ifdef OLED_UNICODE_8X16FONT_ADDR
-        // 没找到就从字库中寻找,字库地址从(宏)开始 16*16字模U+0000 ~ U+FFFF
-        if (strcmp(OLED_Hanzi16x16[pIndex].Index, "") == 0)
-        {
-            // 没在内置字库中找到该汉字，尝试从Flash外置字库中读取
-            // 将UTF-8编码转换为Unicode编码
-            unicode = utf8_to_unicode16(Hanzi);
+        // 从Flash外置字库中读取
+        // 将UTF-8编码转换为Unicode编码
+        unicode = utf8_to_unicode16(Hanzi);
 
-            // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(32字节)
-            flashAddr = OLED_UNICODE_8X16FONT_ADDR + unicode * 32;
+        // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(32字节)
+        flashAddr = OLED_UNICODE_8X16FONT_ADDR + unicode * 32;
 
-            W25Q128_ReadData(flashAddr, hanziData, 32);
-            OLED_ShowImage(X, Y, 16, 16, hanziData, Color);
-        }
-        else
-        {
-            /*将汉字字模库OLED_Hanzi16x16的指定数据以16*16的图像格式显示*/
-            OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
-        }
+        W25Q128_ReadData(flashAddr, hanziData, 32);
+        OLED_ShowImage(X, Y, 16, 16, hanziData, Color);
 #else
+        u8 pIndex = 0;
+        while (strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0)
+        {
+            pIndex++;
+        }
         OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
 #endif
     }
     else if (Size == OLED_6X12)
     {
-        for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
-        {
-            /*找到匹配的汉字*/
-            if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
-            {
-                break; // 跳出循环，此时pIndex的值为指定汉字的索引
-            }
-        }
 #ifdef OLED_UNICODE_6X12FONT_ADDR
-        // 没找到就从字库中寻找,字库地址从(宏)开始 12*12字模U+0000 ~
-        // U+FFFF，使用W25Q128_ReadData(uint32_t Address, uint8_t *DataArray, uint32_t Count);
-        if (strcmp(OLED_Hanzi12x12[pIndex].Index, "") == 0)
-        {
-            // 没在内置字库中找到该汉字，尝试从Flash外置字库中读取
-            // 将UTF-8编码转换为Unicode编码
-            unicode = utf8_to_unicode16(Hanzi);
+        // 从Flash外置字库中读取
+        // 将UTF-8编码转换为Unicode编码
+        unicode = utf8_to_unicode16(Hanzi);
 
-            // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(24字节)
-            flashAddr = OLED_UNICODE_6X12FONT_ADDR + unicode * 24;
+        // 计算在Flash中的地址: 基地址 + Unicode编码 * 每个字模的大小(24字节)
+        flashAddr = OLED_UNICODE_6X12FONT_ADDR + unicode * 24;
 
-            W25Q128_ReadData(flashAddr, hanziData, 24);
-            OLED_ShowImage(X, Y, 12, 12, hanziData, Color);
-        }
-        else
-        {
-            /*将汉字字模库OLED_Hanzi12x12的指定数据以12*12的图像格式显示*/
-            OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
-        }
+        W25Q128_ReadData(flashAddr, hanziData, 24);
+        OLED_ShowImage(X, Y, 12, 12, hanziData, Color);
 #else
+        u8 pIndex = 0;
+        while (strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0)
+        {
+            pIndex++;
+        }
         OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
 #endif
     }
@@ -858,33 +864,7 @@ void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单�
  */
 void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单字打印;
 {
-    u8 pIndex;
-    if (Size == OLED_8X16)
-    {
-        for (pIndex = 0; strcmp(OLED_Hanzi16x16[pIndex].Index, "") != 0; pIndex++)
-        {
-            /*找到匹配的汉字*/
-            if (strcmp(OLED_Hanzi16x16[pIndex].Index, (const char *)Hanzi) == 0)
-            {
-                break; // 跳出循环，此时pIndex的值为指定汉字的索引
-            }
-        }
-        /*将汉字字模库OLED_Hanzi16x16的指定数据以16*16的图像格式显示*/
-        OLED_ShowImage(X, Y, 16, 16, OLED_Hanzi16x16[pIndex].Data, Color);
-    }
-    else if (Size == OLED_6X12)
-    {
-        for (pIndex = 0; strcmp(OLED_Hanzi12x12[pIndex].Index, "") != 0; pIndex++)
-        {
-            /*找到匹配的汉字*/
-            if (strcmp(OLED_Hanzi12x12[pIndex].Index, (const char *)Hanzi) == 0)
-            {
-                break; // 跳出循环，此时pIndex的值为指定汉字的索引
-            }
-        }
-        /*将汉字字模库OLED_Hanzi12x12的指定数据以12*12的图像格式显示*/
-        OLED_ShowImage(X, Y, 12, 12, OLED_Hanzi12x12[pIndex].Data, Color);
-    }
+    OLED_ShowCustomChinese(X, Y, Hanzi, Size, Color);
 }
 
 #endif
@@ -900,7 +880,8 @@ void OLED_ShowChinese(u16 X, u16 Y, u8 *Hanzi, u8 Size, u16 Color) // 汉字单�
 void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文打印;
 {
     u16 i = 0, Len = 0, height = 0, width = 0;
-    height = Size;
+    u8 symbol = 0;
+    height    = Size;
     if (Size == OLED_6X8)
         width = 6;
     else
@@ -908,6 +889,12 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
 
     while (String[i] != '\0') // 遍历字符串的每个字符
     {
+        if (String[i] == '*' && String[i + 1] > '~')
+        {
+            symbol = 1;
+            i++;
+            continue;
+        }
         if (String[i] == '\n')
         {
             Y += height;
@@ -932,7 +919,16 @@ void OLED_ShowString(u16 X, u16 Y, u8 *String, u8 Size, u16 Color) // 中英文�
             SingleChinese[1] = String[i];
             i++;
             SingleChinese[2] = String[i];
-            OLED_ShowChinese(X + Len * width, Y, SingleChinese, Size, Color);
+            if (symbol)
+            {
+                symbol = 0;
+                OLED_ShowCustomChinese(X + Len * width, Y, SingleChinese, Size, Color);
+            }
+            else
+            {
+                OLED_ShowChinese(X + Len * width, Y, SingleChinese, Size, Color);
+            }
+
             i++;
             Len += 2;
         }

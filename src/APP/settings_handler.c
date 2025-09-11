@@ -144,13 +144,13 @@ void KeyNumber_Set_Alarm()
 			Muzic_Flag = 1;
 			Buzzer_Flag = 1;
 
-			OLED_Printf(6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一 %s", Set.WeekEnable[0] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二 %s", Set.WeekEnable[1] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三 %s", Set.WeekEnable[2] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四 %s", Set.WeekEnable[3] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五 %s", Set.WeekEnable[4] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六 %s", Set.WeekEnable[5] ? "对" : "错");
-			OLED_Printf(6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日 %s", Set.WeekEnable[6] ? "对" : "错");
+			OLED_Printf(6, OLED_8X16 * 0 + 1, OLED_8X16, BLACK, "周一 %s", Set.WeekEnable[0] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 1 + 3, OLED_8X16, BLACK, "周二 %s", Set.WeekEnable[1] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 2 + 5, OLED_8X16, BLACK, "周三 %s", Set.WeekEnable[2] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 3 + 7, OLED_8X16, BLACK, "周四 %s", Set.WeekEnable[3] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 4 + 9, OLED_8X16, BLACK, "周五 %s", Set.WeekEnable[4] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 5 + 11, OLED_8X16, BLACK, "周六 %s", Set.WeekEnable[5] ? "*对" : "*错");
+			OLED_Printf(6, OLED_8X16 * 6 + 13, OLED_8X16, BLACK, "周日 %s", Set.WeekEnable[6] ? "*对" : "*错");
 			OLED_DrawLine(72, 0, 72, 128, BLACK);
 			OLED_DrawLine(72, 110, OLED_W, 110, BLACK);
 
@@ -189,7 +189,7 @@ void KeyNumber_Set_Alarm()
 					}
 			}
 
-			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s 灯%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "铃" : "否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "乐" : "  ", Set.MuzicEnable ? "对" : "错", Buzzer_Flag ? "符" : "  ", Set.BuzzerEnable ? "对" : "错");
+			OLED_Printf(80, 112, OLED_8X16, BLACK, "%s%s:%s *灯%smin  %s%s %s%s", Alarm_Flag ? (Alarm.Enable ? "*铃" : "*否") : "  ", Alarm_Hour_Str, Alarm_Min_Str, Light_Flag ? Get_PWM_Str(&Set.PwmMod) : (Set.PwmMod == 1 ? " " : "  "), Muzic_Flag ? "*乐" : "  ", Set.MuzicEnable ? "*对" : "*错", Buzzer_Flag ? "*符" : "  ", Set.BuzzerEnable ? "*对" : "*错");
 
 			Alarm_Choose_Flag++;
 			if (Alarm_Choose_Flag == 1)
@@ -276,7 +276,7 @@ void KeyNumber_Set_Other()
 					break;
 				}
 			}
-			OLED_Printf(8, OLED_H / 2, OLED_8X16, BLACK, "%s麦%s", LowPower_Flag ? "语音助手常开" : "            ", Set.VoiceEnable ? "对" : "错");
+			OLED_Printf(8, OLED_H / 2, OLED_8X16, BLACK, "%s*麦%s", LowPower_Flag ? "语音助手常开" : "            ", Set.VoiceEnable ? "*对" : "*错");
 
 			Other_Choose_Flag++;
 			if (Other_Choose_Flag == 1)
