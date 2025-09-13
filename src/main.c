@@ -51,7 +51,7 @@ int main()
         // 处理按键事件
         if (key_num)
         {
-            BUZ_Flag = 0;
+            BUZ_Flag = 0; // 防止设置时间时触发整点报时
             switch (key_num)
             {
             case KEY_CLICK:
@@ -69,7 +69,6 @@ int main()
                 break;
             }
             Refresh_Flag = 1;
-            BUZ_Flag     = 1;
         }
 
         // 处理主屏幕刷新
